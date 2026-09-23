@@ -1,6 +1,5 @@
-// gerar-site.ts — monta docs/index.html autossuficiente.
-// Empacota o motor (browser.ts) com esbuild, embute as 80 guias, o CSS e a UI.
-// O mesmo motor que roda no lote e no MCP roda aqui, no navegador.
+// gerar-site.ts — monta docs/index.html (dashboard autossuficiente).
+// Empacota o motor (browser.ts) com esbuild e embute as guias, o CSS e a UI.
 import * as esbuild from "esbuild";
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -11,95 +10,127 @@ const AQUI = dirname(fileURLToPath(import.meta.url));
 const RAIZ = join(AQUI, "..");
 const p = (...s: string[]) => join(RAIZ, ...s);
 
-// 1. empacota o motor para o navegador (IIFE, com o JSON das regras embutido)
 const bundle = await esbuild.build({
   entryPoints: [p("src/web/browser.ts")],
-  bundle: true, format: "iife", write: false, minify: true,
-  loader: { ".json": "json" },
+  bundle: true, format: "iife", write: false, minify: true, loader: { ".json": "json" },
 });
 const motorJS = bundle.outputFiles[0].text;
-
-// 2. dados e recursos
 const guias = carregarGuias();
 const css = readFileSync(p("src/web/estilo.css"), "utf8");
 const ui = readFileSync(p("src/web/ui.js"), "utf8");
+const hoje = new Date().toLocaleDateString("pt-BR");
 
-// 3. HTML autossuficiente
+const campo = (id: string, label: string, ph = "") =>
+  `<div class="campo"><label>${label}</label><input id="f_${id}" placeholder="${ph}"></div>`;
+
 const html = `<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Conferência de guias — Clínica Vitalis</title>
+<html lang="pt-BR"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel de conferência de guias — Clínica Vitalis</title>
 <style>${css}</style>
-</head>
-<body>
-<div class="wrap">
-  <header>
-    <h1>Conferência de guias de convênio — Clínica Vitalis</h1>
-    <p>Lote de agosto/2026 · conferência antes do envio ao convênio · dados fictícios</p>
-  </header>
+</head><body>
+<div class="app">
+  <aside class="side">
+    <div class="brand">Conferência de guias<small>Clínica Vitalis</small></div>
+    <nav class="nav">
+      <button data-sec="visao" class="ativo" onclick="irPara('visao')">Visão geral</button>
+      <button data-sec="pendencias" onclick="irPara('pendencias')">Pendências <span class="badge-nav" id="nav-pend-badge"></span></button>
+      <button data-sec="guias" onclick="irPara('guias')">Guias</button>
+      <button data-sec="conferir" onclick="irPara('conferir')">Conferir guia</button>
+    </nav>
+  </aside>
 
-  <section class="card">
-    <h2>Relatório de terça — Dr. Renato</h2>
-    <div class="placar" id="placar"></div>
-  </section>
+  <main class="main">
+    <div class="topo">
+      <h1>Painel de conferência de guias</h1>
+      <div class="meta">Período: <b id="periodo">—</b><br>Última atualização: <b id="atualizado">—</b></div>
+    </div>
 
-  <div class="duas">
-    <section class="card"><h2>Pendências por tipo</h2>
-      <table><thead><tr><th>Tipo</th><th class="num">Guias</th><th class="num">Em risco</th></tr></thead>
-      <tbody id="por-tipo"></tbody></table>
+    <!-- VISÃO GERAL -->
+    <section class="sec on" id="sec-visao">
+      <div class="kpis">
+        <div class="kpi k-tot" id="k-card-tot"><div class="v" id="k-tot">–</div><div class="l">Guias verificadas</div></div>
+        <div class="kpi k-ok" id="k-card-ok"><div class="v" id="k-ok">–</div><div class="l">OK</div></div>
+        <div class="kpi k-pend" id="k-card-pend"><div class="v" id="k-pend">–</div><div class="l">Pendentes</div></div>
+        <div class="kpi k-risco" id="k-card-risco"><div class="v" id="k-risco">–</div><div class="l">Em risco</div></div>
+      </div>
+      <p class="aviso">Clique em um indicador para abrir as guias correspondentes.</p>
     </section>
-    <section class="card"><h2>Por convênio</h2>
-      <table><thead><tr><th>Convênio</th><th class="num">Pend.</th><th class="num">Em risco</th></tr></thead>
-      <tbody id="por-convenio"></tbody></table>
+
+    <!-- PENDÊNCIAS -->
+    <section class="sec" id="sec-pendencias">
+      <div class="duas">
+        <div class="card"><h2>Pendências por tipo</h2>
+          <table><thead><tr><th>Tipo</th><th class="num">Guias</th><th class="num">Em risco</th></tr></thead><tbody id="por-tipo"></tbody></table></div>
+        <div class="card"><h2>Por convênio</h2>
+          <table><thead><tr><th>Convênio</th><th class="num">Pend.</th><th class="num">Em risco</th></tr></thead><tbody id="por-convenio"></tbody></table></div>
+      </div>
     </section>
-  </div>
 
-  <section class="card">
-    <h2>Conferir uma guia nova</h2>
-    <div class="grade">
-      <div><label>Convênio</label><select id="f_convenio"><option>Vitalcard</option><option>Saúde Interior</option><option>Plano Bem</option></select></div>
-      <div><label>Procedimento</label><select id="f_procedimento_codigo"></select></div>
-      <div><label>Data do atendimento</label><input id="f_data_atendimento" placeholder="2026-08-20"></div>
-      <div><label>Data de lançamento</label><input id="f_data_lancamento" placeholder="2026-08-22"></div>
-      <div><label>Carteirinha</label><input id="f_carteirinha"></div>
-      <div><label>CID</label><input id="f_cid"></div>
-      <div><label>Nº autorização</label><input id="f_numero_autorizacao"></div>
-      <div><label>Validade autorização</label><input id="f_autorizacao_validade" placeholder="2026-09-10"></div>
-      <div><label>Limite de sessões</label><input id="f_autorizacao_sessoes_limite"></div>
-      <div><label>Sessão nº</label><input id="f_sessao_numero_na_autorizacao"></div>
-      <div><label>Registro profissional</label><input id="f_profissional_registro" placeholder="CREFITO-3 000-F"></div>
-      <div><label>Valor</label><input id="f_valor" placeholder="62.00"></div>
-      <textarea id="f_observacao_recepcao" placeholder="Observação da recepção (texto livre)"></textarea>
-    </div>
-    <div class="acoes">
-      <button class="btn p" onclick="conferir()">Conferir</button>
-      <button class="btn s" onclick="exemplo()">Carregar exemplo</button>
-    </div>
-    <div id="resultado"></div>
-  </section>
+    <!-- GUIAS -->
+    <section class="sec" id="sec-guias">
+      <div class="card">
+        <div class="filtros">
+          <div class="grupo" id="pills-status">
+            <button class="pill ativo" data-st="TODAS">Todas</button>
+            <button class="pill" data-st="PENDENTE">Pendentes</button>
+            <button class="pill" data-st="OK">OK</button>
+          </div>
+          <div class="campo"><label>De</label><input type="date" id="f-de"></div>
+          <div class="campo"><label>Até</label><input type="date" id="f-ate"></div>
+          <div class="campo busca"><label>Buscar</label><input id="f-busca" placeholder="id, convênio, procedimento"></div>
+        </div>
+        <h2>Todas as guias (<span id="guias-count">0</span>)</h2>
+        <table><thead><tr><th>Guia</th><th>Convênio</th><th>Procedimento</th><th>Atend.</th><th class="num">Valor</th><th>Decisão</th><th>Motivos</th></tr></thead>
+        <tbody id="linhas"></tbody></table>
+      </div>
+    </section>
 
-  <section class="card">
-    <h2>As 80 guias</h2>
-    <div class="filtro">
-      <button class="ativo" onclick="filtrar('TODAS',this)">Todas</button>
-      <button onclick="filtrar('PENDENTE',this)">Pendentes</button>
-      <button onclick="filtrar('OK',this)">OK</button>
-    </div>
-    <table><thead><tr><th>Guia</th><th>Convênio</th><th>Procedimento</th><th>Atend.</th><th class="num">Valor</th><th>Decisão</th><th>Motivos</th></tr></thead>
-    <tbody id="linhas"></tbody></table>
-  </section>
+    <!-- CONFERIR -->
+    <section class="sec" id="sec-conferir">
+      <div class="card">
+        <div class="modos">
+          <button data-modo="upload" class="ativo" onclick="modo('upload')">Upload de CSV (lote)</button>
+          <button data-modo="manual" onclick="modo('manual')">Preencher uma guia</button>
+        </div>
+        <div class="modo on" id="modo-upload">
+          <div class="solta">
+            <p>Envie um CSV de guias (mesmo formato do lote). Confere todas de uma vez e atualiza o painel — funciona com 80 ou 800.</p>
+            <input type="file" accept=".csv" onchange="carregarCSV(this)">
+            <p id="upload-msg" class="aviso"></p>
+          </div>
+        </div>
+        <div class="modo" id="modo-manual">
+          <div class="grade">
+            <div class="campo"><label>Convênio</label><select id="f_convenio"><option>Vitalcard</option><option>Saúde Interior</option><option>Plano Bem</option></select></div>
+            <div class="campo"><label>Procedimento</label><select id="f_procedimento_codigo"></select></div>
+            ${campo("data_atendimento", "Data do atendimento", "2026-08-20")}
+            ${campo("data_lancamento", "Data de lançamento", "2026-08-22")}
+            ${campo("carteirinha", "Carteirinha")}
+            ${campo("cid", "CID")}
+            ${campo("numero_autorizacao", "Nº autorização")}
+            ${campo("autorizacao_validade", "Validade autorização", "2026-09-10")}
+            ${campo("autorizacao_sessoes_limite", "Limite de sessões")}
+            ${campo("sessao_numero_na_autorizacao", "Sessão nº")}
+            ${campo("profissional_registro", "Registro profissional", "CREFITO-3 000-F")}
+            ${campo("valor", "Valor", "62.00")}
+            <textarea id="f_observacao_recepcao" placeholder="Observação da recepção (texto livre)"></textarea>
+          </div>
+          <div class="acoes"><button class="btn p" onclick="conferir()">Conferir</button><button class="btn s" onclick="exemplo()">Carregar exemplo</button></div>
+          <div id="res-manual"></div>
+        </div>
+      </div>
+    </section>
 
-  <footer>Conferência de guias · Clínica Vitalis · a mesma lógica roda no lote, no MCP e nesta página.</footer>
+    <footer>Painel de conferência de guias · Clínica Vitalis · a mesma lógica roda no lote, no MCP e nesta página. Dados de demonstração fictícios.</footer>
+  </main>
 </div>
 
 <script id="guias" type="application/json">${JSON.stringify(guias)}</script>
-<script>window.GUIAS = JSON.parse(document.getElementById("guias").textContent);</script>
+<script>window.GUIAS = JSON.parse(document.getElementById("guias").textContent); window.BUILD_DATE = "${hoje}";</script>
 <script>${motorJS}</script>
 <script>${ui}</script>
-</body>
-</html>`;
+</body></html>`;
 
 mkdirSync(p("docs"), { recursive: true });
 writeFileSync(p("docs/index.html"), html);

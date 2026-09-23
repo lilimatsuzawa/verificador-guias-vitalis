@@ -1,94 +1,165 @@
-/* ui.js — interface do navegador. Usa window.VITALIS (o motor) e window.GUIAS
-   (as 80 guias embutidas). Não decide nada: só chama verificarGuia e mostra. */
+/* ui.js — dashboard. Usa window.VITALIS (o motor) e window.GUIAS (dados iniciais).
+   Nada de regra aqui: so chama verificarGuia e monta a tela. */
 (function () {
   var V = window.VITALIS;
-  var guias = window.GUIAS || [];
   var brl = function (n) { return "R$ " + Number(n).toFixed(2).replace(".", ","); };
   var tag = { regra: "regra", observacao: "obs", dicionario: "dic" };
 
-  // roda o motor no lote inteiro (ao vivo, no navegador)
-  var resultados = guias.map(function (g) { return V.verificarGuia(g, V.regras); });
-  var rel = V.gerarRelatorio(resultados);
+  var dataset = (window.GUIAS || []).slice();
+  var filtroStatus = "TODAS";
+  var busca = "";
+  var de = "", ate = "";
 
-  // ---- placar ----
-  document.getElementById("placar").innerHTML =
-    kpi(rel.total, "guias verificadas") +
-    kpi(rel.ok, "OK") +
-    kpi(rel.pendentes, "pendentes") +
-    kpi(brl(rel.valor_em_risco_total), "em risco (amostra ago.)");
+  var iso = function (s) { var d = V.normalizarData(s); return d ? d.toISOString().slice(0, 10) : ""; };
 
-  function kpi(v, l) { return '<div class="kpi"><div class="v">' + v + '</div><div class="l">' + l + "</div></div>"; }
+  function periodo() {
+    var ds = dataset.map(function (g) { return iso(g.data_atendimento); }).filter(Boolean).sort();
+    return ds.length ? { min: ds[0], max: ds[ds.length - 1] } : { min: "", max: "" };
+  }
 
-  // ---- por tipo ----
-  document.getElementById("por-tipo").innerHTML = rel.por_tipo.map(function (t) {
-    return "<tr><td>" + t.tipo + "</td><td class=num>" + t.quantidade + "</td><td class=num>" + brl(t.valor_em_risco) + "</td></tr>";
-  }).join("");
+  function calcular() {
+    return dataset
+      .filter(function (g) {
+        var d = iso(g.data_atendimento);
+        if (de && d && d < de) return false;
+        if (ate && d && d > ate) return false;
+        return true;
+      })
+      .map(function (g) { return { g: g, r: V.verificarGuia(g, V.regras) }; });
+  }
 
-  // ---- por convênio ----
-  document.getElementById("por-convenio").innerHTML = rel.por_convenio.map(function (c) {
-    return "<tr><td>" + c.convenio + "</td><td class=num>" + c.pendentes + "/" + c.total + "</td><td class=num>" + brl(c.valor_em_risco) + "</td></tr>";
-  }).join("");
-
-  // ---- tabela das 80 ----
   function motivos(r) {
     var b = r.problemas.filter(function (p) { return p.severidade === "bloqueia"; });
     if (!b.length) return "—";
-    return b.map(function (p) { return "<span class=chip>[" + tag[V.origemDe(p.tipo)] + "] " + p.tipo + "</span>"; }).join(" ");
+    return b.map(function (p) { return '<span class="chip">[' + tag[V.origemDe(p.tipo)] + "] " + p.tipo + "</span>"; }).join(" ");
   }
-  document.getElementById("linhas").innerHTML = resultados.map(function (r, i) {
-    var g = guias[i];
-    var cls = r.decisao === "OK" ? "ok" : "pend";
-    return '<tr data-dec="' + r.decisao + '"><td>' + g.id_guia + "</td><td>" + g.convenio + "</td><td>" + r.procedimento +
-      "</td><td>" + g.data_atendimento + "</td><td class=num>" + brl(parseFloat((g.valor || "0").replace(",", "."))) +
-      '</td><td><span class="badge ' + cls + '">' + r.decisao + "</span></td><td>" + motivos(r) + "</td></tr>";
-  }).join("");
 
-  // ---- filtro da tabela ----
-  window.filtrar = function (dec, btn) {
-    var linhas = document.querySelectorAll("#linhas tr");
-    for (var i = 0; i < linhas.length; i++) {
-      linhas[i].style.display = dec === "TODAS" || linhas[i].getAttribute("data-dec") === dec ? "" : "none";
-    }
-    var botoes = document.querySelectorAll(".filtro button");
-    for (var j = 0; j < botoes.length; j++) botoes[j].classList.remove("ativo");
-    btn.classList.add("ativo");
+  function render() {
+    var itens = calcular();
+    var rel = V.gerarRelatorio(itens.map(function (x) { return x.r; }));
+
+    document.getElementById("k-tot").textContent = rel.total;
+    document.getElementById("k-ok").textContent = rel.ok;
+    document.getElementById("k-pend").textContent = rel.pendentes;
+    document.getElementById("k-risco").textContent = brl(rel.valor_em_risco_total);
+    var bn = document.getElementById("nav-pend-badge");
+    bn.textContent = rel.pendentes; bn.style.display = rel.pendentes ? "" : "none";
+
+    var maxTipo = Math.max.apply(null, rel.por_tipo.map(function (t) { return t.valor_em_risco; }).concat([1]));
+    document.getElementById("por-tipo").innerHTML = rel.por_tipo.map(function (t) {
+      return "<tr><td>" + t.tipo + '<div class="bar" style="width:' + Math.round((t.valor_em_risco / maxTipo) * 100) +
+        '%"></div></td><td class="num">' + t.quantidade + '</td><td class="num risco-val">' + brl(t.valor_em_risco) + "</td></tr>";
+    }).join("") || '<tr><td colspan="3">Sem pendencias no periodo.</td></tr>';
+
+    document.getElementById("por-convenio").innerHTML = rel.por_convenio.map(function (c) {
+      return "<tr><td>" + c.convenio + '</td><td class="num">' + c.pendentes + "/" + c.total +
+        '</td><td class="num risco-val">' + brl(c.valor_em_risco) + "</td></tr>";
+    }).join("");
+
+    var q = busca.toLowerCase();
+    var linhas = itens.filter(function (x) {
+      if (filtroStatus !== "TODAS" && x.r.decisao !== filtroStatus) return false;
+      if (q) { var alvo = (x.g.id_guia + " " + x.g.convenio + " " + x.r.procedimento).toLowerCase(); if (alvo.indexOf(q) < 0) return false; }
+      return true;
+    });
+    document.getElementById("guias-count").textContent = linhas.length;
+    document.getElementById("linhas").innerHTML = linhas.map(function (x) {
+      var cls = x.r.decisao === "OK" ? "ok" : "pend";
+      return "<tr><td>" + x.g.id_guia + "</td><td>" + x.g.convenio + "</td><td>" + x.r.procedimento +
+        "</td><td>" + x.g.data_atendimento + '</td><td class="num">' + brl(parseFloat((x.g.valor || "0").replace(",", "."))) +
+        '</td><td><span class="badge ' + cls + '">' + x.r.decisao + "</span></td><td>" + motivos(x.r) + "</td></tr>";
+    }).join("") || '<tr><td colspan="7">Nenhuma guia com esses filtros.</td></tr>';
+
+    var p = periodo();
+    document.getElementById("periodo").textContent = p.min ? (p.min.split("-").reverse().join("/") + " a " + p.max.split("-").reverse().join("/")) : "—";
+  }
+
+  window.irPara = function (sec, statusOpcional) {
+    document.querySelectorAll(".sec").forEach(function (s) { s.classList.remove("on"); });
+    document.getElementById("sec-" + sec).classList.add("on");
+    document.querySelectorAll(".nav button").forEach(function (b) { b.classList.toggle("ativo", b.getAttribute("data-sec") === sec); });
+    if (statusOpcional) { filtroStatus = statusOpcional; sincronizarPills(); render(); }
   };
 
-  // ---- formulário: conferir uma guia nova ao vivo ----
-  var sel = document.getElementById("f_procedimento_codigo");
-  V.regras.procedimentos.forEach(function (p) {
-    var o = document.createElement("option");
-    o.value = p.codigo; o.textContent = p.codigo + " — " + p.descricao; sel.appendChild(o);
-  });
+  function sincronizarPills() {
+    document.querySelectorAll("#pills-status .pill").forEach(function (b) { b.classList.toggle("ativo", b.getAttribute("data-st") === filtroStatus); });
+  }
 
-  var campos = ["convenio", "procedimento_codigo", "data_atendimento", "carteirinha", "cid",
-    "numero_autorizacao", "autorizacao_validade", "autorizacao_sessoes_limite",
-    "sessao_numero_na_autorizacao", "profissional_registro", "valor", "data_lancamento", "observacao_recepcao"];
+  document.getElementById("k-card-tot").onclick = function () { window.irPara("guias", "TODAS"); };
+  document.getElementById("k-card-ok").onclick = function () { window.irPara("guias", "OK"); };
+  document.getElementById("k-card-pend").onclick = function () { window.irPara("guias", "PENDENTE"); };
+  document.getElementById("k-card-risco").onclick = function () { window.irPara("pendencias"); };
+
+  document.querySelectorAll("#pills-status .pill").forEach(function (b) {
+    b.onclick = function () { filtroStatus = b.getAttribute("data-st"); sincronizarPills(); render(); };
+  });
+  document.getElementById("f-busca").oninput = function (e) { busca = e.target.value; render(); };
+  document.getElementById("f-de").onchange = function (e) { de = e.target.value; render(); };
+  document.getElementById("f-ate").onchange = function (e) { ate = e.target.value; render(); };
+
+  window.modo = function (m) {
+    document.querySelectorAll(".modo").forEach(function (x) { x.classList.remove("on"); });
+    document.getElementById("modo-" + m).classList.add("on");
+    document.querySelectorAll(".modos button").forEach(function (b) { b.classList.toggle("ativo", b.getAttribute("data-modo") === m); });
+  };
+
+  var campos = ["convenio", "procedimento_codigo", "data_atendimento", "data_lancamento", "carteirinha", "cid",
+    "numero_autorizacao", "autorizacao_validade", "autorizacao_sessoes_limite", "sessao_numero_na_autorizacao",
+    "profissional_registro", "valor", "observacao_recepcao"];
+
+  var selProc = document.getElementById("f_procedimento_codigo");
+  V.regras.procedimentos.forEach(function (p) { var o = document.createElement("option"); o.value = p.codigo; o.textContent = p.codigo + " - " + p.descricao; selProc.appendChild(o); });
+
+  function mostrarResultado(r, alvo) {
+    var cls = r.decisao === "OK" ? "ok" : "pend";
+    var html = '<div class="res ' + cls + '"><b><span class="badge ' + cls + '">' + r.decisao + "</span> " + (r.procedimento || "") + "</b> - " + brl(r.valor_em_risco) + " em risco";
+    if (!r.problemas.length) html += "<p>Guia pronta para envio.</p>";
+    else html += "<ul>" + r.problemas.map(function (p) { return "<li><b>" + p.tipo + "</b> [" + tag[V.origemDe(p.tipo)] + "] - " + p.motivo + "<br><i>Corrigir:</i> " + p.corrigir + "</li>"; }).join("") + "</ul>";
+    html += "</div>";
+    document.getElementById(alvo).innerHTML = html;
+  }
 
   window.conferir = function () {
-    var g = {};
-    campos.forEach(function (c) { g[c] = (document.getElementById("f_" + c).value || "").trim(); });
-    var r = V.verificarGuia(g, V.regras);
-    var cls = r.decisao === "OK" ? "ok" : "pend";
-    var html = '<div class="res ' + cls + '"><div class="res-top"><span class="badge ' + cls + '">' + r.decisao +
-      "</span> <b>" + (r.procedimento || "") + "</b> · " + brl(r.valor_em_risco) + " em risco</div>";
-    if (!r.problemas.length) html += "<p>Guia pronta para envio.</p>";
-    else html += "<ul>" + r.problemas.map(function (p) {
-      return "<li><b>" + p.tipo + "</b> [" + tag[V.origemDe(p.tipo)] + "] — " + p.motivo + "<br><i>Corrigir:</i> " + p.corrigir + "</li>";
-    }).join("") + "</ul>";
-    html += "</div>";
-    document.getElementById("resultado").innerHTML = html;
+    var g = {}; campos.forEach(function (c) { g[c] = (document.getElementById("f_" + c).value || "").trim(); });
+    mostrarResultado(V.verificarGuia(g, V.regras), "res-manual");
   };
-
   window.exemplo = function () {
-    var ex = {
-      convenio: "Vitalcard", procedimento_codigo: "20103301", data_atendimento: "2026-08-12",
+    var ex = { convenio: "Vitalcard", procedimento_codigo: "20103301", data_atendimento: "2026-08-12", data_lancamento: "2026-08-14",
       carteirinha: "445566", cid: "M25.5", numero_autorizacao: "AUT909", autorizacao_validade: "2026-09-05",
-      autorizacao_sessoes_limite: "10", sessao_numero_na_autorizacao: "2", profissional_registro: "CRM-SP 55010",
-      valor: "90.00", data_lancamento: "2026-08-14",
-      observacao_recepcao: "Procedimento realizado foi drenagem linfática, lançar o código certo.",
-    };
+      autorizacao_sessoes_limite: "10", sessao_numero_na_autorizacao: "2", profissional_registro: "CRM-SP 55010", valor: "90.00",
+      observacao_recepcao: "Procedimento realizado foi drenagem linfatica, lancar o codigo certo." };
     campos.forEach(function (c) { document.getElementById("f_" + c).value = ex[c] || ""; });
     window.conferir();
   };
+
+  function parseCSV(txt) {
+    var rows = [], field = "", row = [], q = false;
+    for (var i = 0; i < txt.length; i++) { var c = txt[i];
+      if (q) { if (c === '"') { if (txt[i + 1] === '"') { field += '"'; i++; } else q = false; } else field += c; }
+      else { if (c === '"') q = true; else if (c === ",") { row.push(field); field = ""; } else if (c === "\n") { row.push(field); rows.push(row); row = []; field = ""; } else if (c === "\r") {} else field += c; } }
+    if (field !== "" || row.length) { row.push(field); rows.push(row); }
+    return rows;
+  }
+  window.carregarCSV = function (input) {
+    var f = input.files && input.files[0]; if (!f) return;
+    var fr = new FileReader();
+    fr.onload = function () {
+      try {
+        var linhas = parseCSV(String(fr.result));
+        var head = linhas[0].map(function (h) { return h.trim(); });
+        var novas = linhas.slice(1).filter(function (l) { return l.length > 1; }).map(function (l) { var o = {}; head.forEach(function (h, i) { o[h] = (l[i] || "").trim(); }); return o; });
+        if (!novas.length || head.indexOf("convenio") < 0) throw new Error("CSV sem as colunas esperadas (ex.: convenio, procedimento_codigo).");
+        dataset = novas; de = ""; ate = ""; filtroStatus = "TODAS"; sincronizarPills();
+        document.getElementById("upload-msg").textContent = novas.length + " guias carregadas. Dashboard atualizado.";
+        render(); window.irPara("visao");
+      } catch (e) { document.getElementById("upload-msg").textContent = "Erro ao ler o CSV: " + e.message; }
+    };
+    fr.readAsText(f);
+  };
+
+  var p0 = periodo(); de = p0.min; ate = p0.max;
+  document.getElementById("f-de").value = de; document.getElementById("f-ate").value = ate;
+  document.getElementById("atualizado").textContent = window.BUILD_DATE || "";
+  sincronizarPills();
+  render();
 })();

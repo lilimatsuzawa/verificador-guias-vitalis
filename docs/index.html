@@ -1,209 +1,369 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Conferência de guias — Clínica Vitalis</title>
-<style>:root { --tinta:#1a1d21; --linha:#e2e6ea; --vermelho:#e6423a; --verde:#1a7f4b; --cinza:#6b7078; --fundo:#f7f8fa; }
-* { box-sizing: border-box; }
-body { margin:0; font-family:"Helvetica Neue",Arial,sans-serif; color:var(--tinta); background:var(--fundo); line-height:1.5; }
-.wrap { max-width: 1000px; margin: 0 auto; padding: 24px 18px 60px; }
-header h1 { font-size: 22px; margin: 0 0 2px; letter-spacing:-.3px; }
-header p { color: var(--cinza); margin: 0 0 20px; }
-.card { background:#fff; border:1px solid var(--linha); border-radius:10px; padding:16px 18px; margin-bottom:18px; }
-h2 { font-size: 14px; text-transform: uppercase; letter-spacing:.5px; color:var(--vermelho); margin: 0 0 12px; }
-.placar { display:flex; gap:12px; flex-wrap:wrap; }
-.kpi { flex:1; min-width:120px; background:var(--fundo); border-radius:8px; padding:14px; text-align:center; }
-.kpi .v { font-size:24px; font-weight:700; }
-.kpi .l { font-size:11px; color:var(--cinza); text-transform:uppercase; letter-spacing:.4px; }
-.duas { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
-@media (max-width:680px){ .duas{ grid-template-columns:1fr; } }
-table { width:100%; border-collapse:collapse; font-size:13px; }
-th { text-align:left; color:var(--cinza); font-weight:600; padding:6px 8px; border-bottom:2px solid var(--linha); font-size:11px; text-transform:uppercase; letter-spacing:.4px; }
-td { padding:6px 8px; border-bottom:1px solid var(--linha); vertical-align:top; }
-.num { text-align:right; font-variant-numeric:tabular-nums; }
-.badge { display:inline-block; padding:1px 8px; border-radius:20px; font-size:11px; font-weight:700; }
-.badge.ok { background:#e7f6ee; color:var(--verde); }
-.badge.pend { background:#fdECEB; color:var(--vermelho); }
-.chip { display:inline-block; background:#eef1f3; border-radius:4px; padding:0 5px; font-size:11px; margin:1px 2px 1px 0; }
-.filtro { margin-bottom:10px; }
-.filtro button { border:1px solid var(--linha); background:#fff; border-radius:20px; padding:4px 12px; margin-right:6px; cursor:pointer; font-size:12px; }
-.filtro button.ativo { background:var(--tinta); color:#fff; border-color:var(--tinta); }
-.grade { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-@media (max-width:680px){ .grade{ grid-template-columns:1fr; } }
-label { display:block; font-size:11px; color:var(--cinza); margin-bottom:2px; }
-input,select,textarea { width:100%; padding:6px 8px; border:1px solid var(--linha); border-radius:6px; font-size:13px; font-family:inherit; }
-textarea { grid-column:1/-1; min-height:52px; resize:vertical; }
-.acoes { margin:12px 0; display:flex; gap:8px; }
-.btn { border:none; border-radius:6px; padding:8px 16px; font-size:13px; font-weight:600; cursor:pointer; }
-.btn.p { background:var(--vermelho); color:#fff; }
-.btn.s { background:#fff; border:1px solid var(--linha); }
-.res { border-radius:8px; padding:12px 14px; margin-top:10px; }
-.res.ok { background:#e7f6ee; } .res.pend { background:#fdECEB; }
-.res-top { margin-bottom:6px; }
-.res ul { margin:6px 0 0; padding-left:18px; } .res li { margin:6px 0; }
-footer { color:var(--cinza); font-size:12px; text-align:center; margin-top:8px; }
+<html lang="pt-BR"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel de conferência de guias — Clínica Vitalis</title>
+<style>:root{
+  --tinta:#16191d; --suave:#5b6470; --linha:#e6e9ec; --fundo:#f4f6f8; --branco:#fff;
+  --risco:#e0362c; --risco-bg:#fdECEA; --ok:#12805c; --ok-bg:#e6f6ef;
+  --alerta:#b7791f; --alerta-bg:#fdf3e2; --azul:#2b5cff; --azul-bg:#eaf0ff;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Helvetica Neue",Arial,sans-serif;color:var(--tinta);background:var(--fundo);line-height:1.5}
+a{color:inherit}
+
+/* layout: menu lateral + conteúdo */
+.app{display:flex;min-height:100vh}
+.side{width:210px;background:var(--branco);border-right:1px solid var(--linha);padding:18px 12px;flex-shrink:0}
+.brand{font-weight:700;font-size:15px;padding:6px 10px 16px;line-height:1.25}
+.brand small{display:block;color:var(--suave);font-weight:400;font-size:12px}
+.nav button{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:none;background:none;padding:9px 10px;border-radius:8px;font-size:13.5px;color:var(--suave);cursor:pointer;margin-bottom:2px}
+.nav button:hover{background:var(--fundo)}
+.nav button.ativo{background:var(--tinta);color:#fff;font-weight:600}
+.nav .badge-nav{margin-left:auto;background:var(--risco-bg);color:var(--risco);border-radius:20px;font-size:11px;padding:0 7px;font-weight:700}
+.nav button.ativo .badge-nav{background:rgba(255,255,255,.2);color:#fff}
+
+.main{flex:1;padding:22px 26px 60px;min-width:0}
+.topo{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.topo h1{font-size:20px;margin:0}
+.topo .meta{color:var(--suave);font-size:12.5px;text-align:right}
+.topo .meta b{color:var(--tinta)}
+
+.sec{display:none}.sec.on{display:block}
+
+/* KPIs */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.kpi{background:var(--branco);border:1px solid var(--linha);border-left:4px solid var(--suave);border-radius:10px;padding:14px 16px;cursor:pointer;transition:transform .08s,box-shadow .08s}
+.kpi:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.06)}
+.kpi .v{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums}
+.kpi .l{font-size:11px;color:var(--suave);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.kpi.k-tot{border-left-color:var(--azul)} .kpi.k-tot .v{color:var(--azul)}
+.kpi.k-ok{border-left-color:var(--ok)} .kpi.k-ok .v{color:var(--ok)}
+.kpi.k-pend{border-left-color:var(--alerta)} .kpi.k-pend .v{color:var(--alerta)}
+.kpi.k-risco{border-left-color:var(--risco)} .kpi.k-risco .v{color:var(--risco)}
+
+/* cartões e tabelas */
+.card{background:var(--branco);border:1px solid var(--linha);border-radius:10px;padding:16px 18px;margin-bottom:16px}
+.card h2{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--suave);margin:0 0 12px}
+.duas{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--suave);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.4px;padding:7px 8px;border-bottom:2px solid var(--linha)}
+td{padding:7px 8px;border-bottom:1px solid var(--linha);vertical-align:top}
+tr:last-child td{border-bottom:none}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.risco-val{color:var(--risco);font-weight:600}
+.bar{height:6px;border-radius:4px;background:var(--risco);opacity:.85;margin-top:4px}
+
+.badge{display:inline-block;padding:1px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.badge.ok{background:var(--ok-bg);color:var(--ok)}
+.badge.pend{background:var(--risco-bg);color:var(--risco)}
+.chip{display:inline-block;background:var(--fundo);border:1px solid var(--linha);border-radius:5px;padding:0 6px;font-size:11px;margin:1px 3px 1px 0}
+
+/* filtros */
+.filtros{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px}
+.filtros .grupo{display:flex;gap:4px}
+.pill{border:1px solid var(--linha);background:#fff;border-radius:20px;padding:5px 13px;font-size:12.5px;cursor:pointer}
+.pill.ativo{background:var(--tinta);color:#fff;border-color:var(--tinta)}
+.campo label{display:block;font-size:10.5px;color:var(--suave);margin-bottom:2px;text-transform:uppercase;letter-spacing:.4px}
+input,select,textarea{font-family:inherit;font-size:13px;padding:7px 9px;border:1px solid var(--linha);border-radius:7px;background:#fff}
+input,select{height:34px}
+.busca{flex:1;min-width:140px}.busca input{width:100%}
+
+/* conferir */
+.modos{display:flex;gap:6px;margin-bottom:14px;border-bottom:1px solid var(--linha)}
+.modos button{border:none;background:none;padding:8px 4px;margin-right:14px;color:var(--suave);cursor:pointer;font-size:13.5px;border-bottom:2px solid transparent}
+.modos button.ativo{color:var(--tinta);font-weight:600;border-bottom-color:var(--risco)}
+.modo{display:none}.modo.on{display:block}
+.grade{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.grade .campo{display:flex;flex-direction:column}
+.grade textarea{grid-column:1/-1;min-height:52px}
+.acoes{margin:14px 0;display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer}
+.btn.p{background:var(--risco);color:#fff}.btn.s{background:#fff;border:1px solid var(--linha)}
+.solta{border:2px dashed var(--linha);border-radius:10px;padding:24px;text-align:center;color:var(--suave)}
+.res{border-radius:9px;padding:14px 16px;margin-top:12px}
+.res.ok{background:var(--ok-bg)}.res.pend{background:var(--risco-bg)}
+.res ul{margin:8px 0 0;padding-left:18px}.res li{margin:6px 0}
+.aviso{color:var(--suave);font-size:12px;margin-top:10px}
+footer{color:var(--suave);font-size:11px;margin-top:20px}
+
+@media(max-width:760px){
+  .app{flex-direction:column}
+  .side{width:auto;border-right:none;border-bottom:1px solid var(--linha);padding:10px}
+  .brand{padding:4px 8px 10px}
+  .nav{display:flex;gap:4px;overflow-x:auto}
+  .nav button{white-space:nowrap;margin-bottom:0}
+  .kpis{grid-template-columns:1fr 1fr}
+  .duas{grid-template-columns:1fr}
+  .grade{grid-template-columns:1fr 1fr}
+  .main{padding:16px}
+}
 </style>
-</head>
-<body>
-<div class="wrap">
-  <header>
-    <h1>Conferência de guias de convênio — Clínica Vitalis</h1>
-    <p>Lote de agosto/2026 · conferência antes do envio ao convênio · dados fictícios</p>
-  </header>
+</head><body>
+<div class="app">
+  <aside class="side">
+    <div class="brand">Conferência de guias<small>Clínica Vitalis</small></div>
+    <nav class="nav">
+      <button data-sec="visao" class="ativo" onclick="irPara('visao')">Visão geral</button>
+      <button data-sec="pendencias" onclick="irPara('pendencias')">Pendências <span class="badge-nav" id="nav-pend-badge"></span></button>
+      <button data-sec="guias" onclick="irPara('guias')">Guias</button>
+      <button data-sec="conferir" onclick="irPara('conferir')">Conferir guia</button>
+    </nav>
+  </aside>
 
-  <section class="card">
-    <h2>Relatório de terça — Dr. Renato</h2>
-    <div class="placar" id="placar"></div>
-  </section>
+  <main class="main">
+    <div class="topo">
+      <h1>Painel de conferência de guias</h1>
+      <div class="meta">Período: <b id="periodo">—</b><br>Última atualização: <b id="atualizado">—</b></div>
+    </div>
 
-  <div class="duas">
-    <section class="card"><h2>Pendências por tipo</h2>
-      <table><thead><tr><th>Tipo</th><th class="num">Guias</th><th class="num">Em risco</th></tr></thead>
-      <tbody id="por-tipo"></tbody></table>
+    <!-- VISÃO GERAL -->
+    <section class="sec on" id="sec-visao">
+      <div class="kpis">
+        <div class="kpi k-tot" id="k-card-tot"><div class="v" id="k-tot">–</div><div class="l">Guias verificadas</div></div>
+        <div class="kpi k-ok" id="k-card-ok"><div class="v" id="k-ok">–</div><div class="l">OK</div></div>
+        <div class="kpi k-pend" id="k-card-pend"><div class="v" id="k-pend">–</div><div class="l">Pendentes</div></div>
+        <div class="kpi k-risco" id="k-card-risco"><div class="v" id="k-risco">–</div><div class="l">Em risco</div></div>
+      </div>
+      <p class="aviso">Clique em um indicador para abrir as guias correspondentes.</p>
     </section>
-    <section class="card"><h2>Por convênio</h2>
-      <table><thead><tr><th>Convênio</th><th class="num">Pend.</th><th class="num">Em risco</th></tr></thead>
-      <tbody id="por-convenio"></tbody></table>
+
+    <!-- PENDÊNCIAS -->
+    <section class="sec" id="sec-pendencias">
+      <div class="duas">
+        <div class="card"><h2>Pendências por tipo</h2>
+          <table><thead><tr><th>Tipo</th><th class="num">Guias</th><th class="num">Em risco</th></tr></thead><tbody id="por-tipo"></tbody></table></div>
+        <div class="card"><h2>Por convênio</h2>
+          <table><thead><tr><th>Convênio</th><th class="num">Pend.</th><th class="num">Em risco</th></tr></thead><tbody id="por-convenio"></tbody></table></div>
+      </div>
     </section>
-  </div>
 
-  <section class="card">
-    <h2>Conferir uma guia nova</h2>
-    <div class="grade">
-      <div><label>Convênio</label><select id="f_convenio"><option>Vitalcard</option><option>Saúde Interior</option><option>Plano Bem</option></select></div>
-      <div><label>Procedimento</label><select id="f_procedimento_codigo"></select></div>
-      <div><label>Data do atendimento</label><input id="f_data_atendimento" placeholder="2026-08-20"></div>
-      <div><label>Data de lançamento</label><input id="f_data_lancamento" placeholder="2026-08-22"></div>
-      <div><label>Carteirinha</label><input id="f_carteirinha"></div>
-      <div><label>CID</label><input id="f_cid"></div>
-      <div><label>Nº autorização</label><input id="f_numero_autorizacao"></div>
-      <div><label>Validade autorização</label><input id="f_autorizacao_validade" placeholder="2026-09-10"></div>
-      <div><label>Limite de sessões</label><input id="f_autorizacao_sessoes_limite"></div>
-      <div><label>Sessão nº</label><input id="f_sessao_numero_na_autorizacao"></div>
-      <div><label>Registro profissional</label><input id="f_profissional_registro" placeholder="CREFITO-3 000-F"></div>
-      <div><label>Valor</label><input id="f_valor" placeholder="62.00"></div>
-      <textarea id="f_observacao_recepcao" placeholder="Observação da recepção (texto livre)"></textarea>
-    </div>
-    <div class="acoes">
-      <button class="btn p" onclick="conferir()">Conferir</button>
-      <button class="btn s" onclick="exemplo()">Carregar exemplo</button>
-    </div>
-    <div id="resultado"></div>
-  </section>
+    <!-- GUIAS -->
+    <section class="sec" id="sec-guias">
+      <div class="card">
+        <div class="filtros">
+          <div class="grupo" id="pills-status">
+            <button class="pill ativo" data-st="TODAS">Todas</button>
+            <button class="pill" data-st="PENDENTE">Pendentes</button>
+            <button class="pill" data-st="OK">OK</button>
+          </div>
+          <div class="campo"><label>De</label><input type="date" id="f-de"></div>
+          <div class="campo"><label>Até</label><input type="date" id="f-ate"></div>
+          <div class="campo busca"><label>Buscar</label><input id="f-busca" placeholder="id, convênio, procedimento"></div>
+        </div>
+        <h2>Todas as guias (<span id="guias-count">0</span>)</h2>
+        <table><thead><tr><th>Guia</th><th>Convênio</th><th>Procedimento</th><th>Atend.</th><th class="num">Valor</th><th>Decisão</th><th>Motivos</th></tr></thead>
+        <tbody id="linhas"></tbody></table>
+      </div>
+    </section>
 
-  <section class="card">
-    <h2>As 80 guias</h2>
-    <div class="filtro">
-      <button class="ativo" onclick="filtrar('TODAS',this)">Todas</button>
-      <button onclick="filtrar('PENDENTE',this)">Pendentes</button>
-      <button onclick="filtrar('OK',this)">OK</button>
-    </div>
-    <table><thead><tr><th>Guia</th><th>Convênio</th><th>Procedimento</th><th>Atend.</th><th class="num">Valor</th><th>Decisão</th><th>Motivos</th></tr></thead>
-    <tbody id="linhas"></tbody></table>
-  </section>
+    <!-- CONFERIR -->
+    <section class="sec" id="sec-conferir">
+      <div class="card">
+        <div class="modos">
+          <button data-modo="upload" class="ativo" onclick="modo('upload')">Upload de CSV (lote)</button>
+          <button data-modo="manual" onclick="modo('manual')">Preencher uma guia</button>
+        </div>
+        <div class="modo on" id="modo-upload">
+          <div class="solta">
+            <p>Envie um CSV de guias (mesmo formato do lote). Confere todas de uma vez e atualiza o painel — funciona com 80 ou 800.</p>
+            <input type="file" accept=".csv" onchange="carregarCSV(this)">
+            <p id="upload-msg" class="aviso"></p>
+          </div>
+        </div>
+        <div class="modo" id="modo-manual">
+          <div class="grade">
+            <div class="campo"><label>Convênio</label><select id="f_convenio"><option>Vitalcard</option><option>Saúde Interior</option><option>Plano Bem</option></select></div>
+            <div class="campo"><label>Procedimento</label><select id="f_procedimento_codigo"></select></div>
+            <div class="campo"><label>Data do atendimento</label><input id="f_data_atendimento" placeholder="2026-08-20"></div>
+            <div class="campo"><label>Data de lançamento</label><input id="f_data_lancamento" placeholder="2026-08-22"></div>
+            <div class="campo"><label>Carteirinha</label><input id="f_carteirinha" placeholder=""></div>
+            <div class="campo"><label>CID</label><input id="f_cid" placeholder=""></div>
+            <div class="campo"><label>Nº autorização</label><input id="f_numero_autorizacao" placeholder=""></div>
+            <div class="campo"><label>Validade autorização</label><input id="f_autorizacao_validade" placeholder="2026-09-10"></div>
+            <div class="campo"><label>Limite de sessões</label><input id="f_autorizacao_sessoes_limite" placeholder=""></div>
+            <div class="campo"><label>Sessão nº</label><input id="f_sessao_numero_na_autorizacao" placeholder=""></div>
+            <div class="campo"><label>Registro profissional</label><input id="f_profissional_registro" placeholder="CREFITO-3 000-F"></div>
+            <div class="campo"><label>Valor</label><input id="f_valor" placeholder="62.00"></div>
+            <textarea id="f_observacao_recepcao" placeholder="Observação da recepção (texto livre)"></textarea>
+          </div>
+          <div class="acoes"><button class="btn p" onclick="conferir()">Conferir</button><button class="btn s" onclick="exemplo()">Carregar exemplo</button></div>
+          <div id="res-manual"></div>
+        </div>
+      </div>
+    </section>
 
-  <footer>Conferência de guias · Clínica Vitalis · a mesma lógica roda no lote, no MCP e nesta página.</footer>
+    <footer>Painel de conferência de guias · Clínica Vitalis · a mesma lógica roda no lote, no MCP e nesta página. Dados de demonstração fictícios.</footer>
+  </main>
 </div>
 
 <script id="guias" type="application/json">[{"id_guia":"G-2608-0001","unidade":"Sul","data_atendimento":"2026-08-28","paciente":"P-1036","convenio":"Vitalcard","carteirinha":"884410270","cid":"M79.7","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"AUT887507","autorizacao_validade":"2026-08-28","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"7","profissional":"Bruno Castanho","profissional_registro":"CREFITO-3 204411-F","valor":"62.00","observacao_recepcao":"","data_lancamento":"2026-08-31"},{"id_guia":"G-2608-0002","unidade":"Sul","data_atendimento":"2026-08-06","paciente":"P-1044","convenio":"Plano Bem","carteirinha":"626441373","cid":"M51.1","procedimento_codigo":"20103301","procedimento_descricao":"Consulta ortopédica","numero_autorizacao":"AUT320436","autorizacao_validade":"2026-08-23","autorizacao_sessoes_limite":"12","sessao_numero_na_autorizacao":"1","profissional":"Dra. Marina Lopes","profissional_registro":"CRM-SP 112390","valor":"90.00","observacao_recepcao":"Trouxe exame novo, anexado ao prontuário.","data_lancamento":"2026-08-08"},{"id_guia":"G-2608-0003","unidade":"Sul","data_atendimento":"2026-08-25","paciente":"P-1006","convenio":"Vitalcard","carteirinha":"698557955","cid":"G81.9","procedimento_codigo":"50000560","procedimento_descricao":"Sessão de fisioterapia neurofuncional","numero_autorizacao":"AUT401572","autorizacao_validade":"2026-09-17","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"2","profissional":"Felipe Andrade","profissional_registro":"CREFITO-3 198302-F","valor":"70.00","observacao_recepcao":"","data_lancamento":"2026-08-26"},{"id_guia":"G-2608-0004","unidade":"Norte","data_atendimento":"2026-08-18","paciente":"P-1026","convenio":"Plano Bem","carteirinha":"728909716","cid":"M79.7","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"AUT222104","autorizacao_validade":"2026-08-04","autorizacao_sessoes_limite":"12","sessao_numero_na_autorizacao":"8","profissional":"Elaine Moura","profissional_registro":"CREFITO-3 133455-F","valor":"62.00","observacao_recepcao":"Trouxe exame novo, anexado ao prontuário.","data_lancamento":"2026-08-21"},{"id_guia":"G-2608-0005","unidade":"Norte","data_atendimento":"2026-08-25","paciente":"P-1050","convenio":"Vitalcard","carteirinha":"238511463","cid":"M54.5","procedimento_codigo":"50000560","procedimento_descricao":"Sessão de fisioterapia neurofuncional","numero_autorizacao":"AUT838892","autorizacao_validade":"2026-09-13","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"10","profissional":"Gabriela Nunes","profissional_registro":"CREFITO-3 240117-F","valor":"70.00","observacao_recepcao":"Pediu recibo para reembolso do plano.","data_lancamento":"2026-08-25"},{"id_guia":"G-2608-0006","unidade":"Norte","data_atendimento":"2026-08-12","paciente":"P-1046","convenio":"Vitalcard","carteirinha":"685868185","cid":"M25.5","procedimento_codigo":"40201015","procedimento_descricao":"Infiltração articular","numero_autorizacao":"AUT802287","autorizacao_validade":"2026-08-22","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"15","profissional":"Dr. Renato Albuquerque","profissional_registro":"CRM-SP 84512","valor":"140.00","observacao_recepcao":"Paciente chegou 10 min atrasado.","data_lancamento":"2026-08-15"},{"id_guia":"G-2608-0007","unidade":"Centro","data_atendimento":"2026-08-13","paciente":"P-1057","convenio":"Vitalcard","carteirinha":"741317229","cid":"M79.7","procedimento_codigo":"40201015","procedimento_descricao":"Infiltração articular","numero_autorizacao":"AUT942580","autorizacao_validade":"2026-08-16","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"1","profissional":"Dr. Renato Albuquerque","profissional_registro":"CRM-SP 84512","valor":"140.00","observacao_recepcao":"Pediu recibo para reembolso do plano.","data_lancamento":"2026-08-16"},{"id_guia":"G-2608-0008","unidade":"Sul","data_atendimento":"2026-08-25","paciente":"P-1036","convenio":"Vitalcard","carteirinha":"812854559","cid":"M54.5","procedimento_codigo":"50000560","procedimento_descricao":"Sessão de fisioterapia neurofuncional","numero_autorizacao":"AUT971789","autorizacao_validade":"2026-09-21","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"13","profissional":"Heitor Salles","profissional_registro":"CREFITO-3 156740-F","valor":"70.00","observacao_recepcao":"Paciente chegou 10 min atrasado.","data_lancamento":"2026-08-27"},{"id_guia":"G-2608-0009","unidade":"Sul","data_atendimento":"2026-08-21","paciente":"P-1031","convenio":"Saúde Interior","carteirinha":"169036396","cid":"","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"AUT622632","autorizacao_validade":"2026-09-04","autorizacao_sessoes_limite":"20","sessao_numero_na_autorizacao":"14","profissional":"Heitor Salles","profissional_registro":"CREFITO-3 156740-F","valor":"62.00","observacao_recepcao":"Confirmado pelo WhatsApp na véspera.","data_lancamento":"2026-08-21"},{"id_guia":"G-2608-0010","unidade":"Norte","data_atendimento":"2026-08-03","paciente":"P-1035","convenio":"Vitalcard","carteirinha":"998029442","cid":"M75.1","procedimento_codigo":"50000560","procedimento_descricao":"Sessão de fisioterapia neurofuncional","numero_autorizacao":"AUT739771","autorizacao_validade":"2026-08-08","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"1","profissional":"Camila Torres","profissional_registro":"CREFITO-3 176590-F","valor":"70.00","observacao_recepcao":"","data_lancamento":"2026-08-04"},{"id_guia":"G-2608-0011","unidade":"Centro","data_atendimento":"2026-08-13","paciente":"P-1021","convenio":"Vitalcard","carteirinha":"813588766","cid":"M79.7","procedimento_codigo":"20103301","procedimento_descricao":"Consulta ortopédica","numero_autorizacao":"AUT823262","autorizacao_validade":"2026-09-06","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"6","profissional":"Dr. Otávio Prado","profissional_registro":"CRM-SP 97731","valor":"90.00","observacao_recepcao":"","data_lancamento":"2026-08-14"},{"id_guia":"G-2608-0012","unidade":"Norte","data_atendimento":"2026-08-25","paciente":"P-1011","convenio":"Saúde Interior","carteirinha":"245326801","cid":"","procedimento_codigo":"20103301","procedimento_descricao":"Consulta ortopédica","numero_autorizacao":"AUT714496","autorizacao_validade":"2026-09-15","autorizacao_sessoes_limite":"20","sessao_numero_na_autorizacao":"3","profissional":"Dr. Otávio Prado","profissional_registro":"CRM-SP 97731","valor":"90.00","observacao_recepcao":"Paciente chegou 10 min atrasado.","data_lancamento":"2026-08-28"},{"id_guia":"G-2608-0013","unidade":"Norte","data_atendimento":"2026-08-19","paciente":"P-1005","convenio":"Vitalcard","carteirinha":"155163880","cid":"M51.1","procedimento_codigo":"20103301","procedimento_descricao":"Consulta ortopédica","numero_autorizacao":"AUT777665","autorizacao_validade":"2026-08-22","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"2","profissional":"Dr. Renato Albuquerque","profissional_registro":"","valor":"90.00","observacao_recepcao":"Confirmado pelo WhatsApp na véspera.","data_lancamento":"2026-08-19"},{"id_guia":"G-2608-0014","unidade":"Sul","data_atendimento":"2026-08-17","paciente":"P-1037","convenio":"Vitalcard","carteirinha":"764223162","cid":"M17.1","procedimento_codigo":"50000560","procedimento_descricao":"Sessão de fisioterapia neurofuncional","numero_autorizacao":"AUT261365","autorizacao_validade":"2026-07-27","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"8","profissional":"Elaine Moura","profissional_registro":"CREFITO-3 133455-F","valor":"70.00","observacao_recepcao":"","data_lancamento":"2026-08-18"},{"id_guia":"G-2608-0015","unidade":"Centro","data_atendimento":"2026-08-26","paciente":"P-1059","convenio":"Vitalcard","carteirinha":"286148083","cid":"M54.5","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"AUT779719","autorizacao_validade":"2026-09-10","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"1","profissional":"Diego Farias","profissional_registro":"CREFITO-3 221078-F","valor":"62.00","observacao_recepcao":"Pediu recibo para reembolso do plano.","data_lancamento":"2026-08-26"},{"id_guia":"G-2608-0016","unidade":"Centro","data_atendimento":"03/08/2026","paciente":"P-1057","convenio":"Saúde Interior","carteirinha":"654966312","cid":"","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"AUT244411","autorizacao_validade":"2026-08-14","autorizacao_sessoes_limite":"20","sessao_numero_na_autorizacao":"17","profissional":"Diego Farias","profissional_registro":"CREFITO-3 221078-F","valor":"62.00","observacao_recepcao":"","data_lancamento":"2026-08-04"},{"id_guia":"G-2608-0017","unidade":"Centro","data_atendimento":"2026-08-19","paciente":"P-1017","convenio":"Vitalcard","carteirinha":"598125208","cid":"M79.7","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"AUT918149","autorizacao_validade":"2026-08-31","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"3","profissional":"Gabriela Nunes","profissional_registro":"CREFITO-3 240117-F","valor":"62.00","observacao_recepcao":"Trouxe exame novo, anexado ao prontuário.","data_lancamento":"2026-08-21"},{"id_guia":"G-2608-0018","unidade":"Sul","data_atendimento":"2026-08-06","paciente":"P-1053","convenio":"Saúde Interior","carteirinha":"201539514","cid":"","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"AUT342572","autorizacao_validade":"2026-09-11","autorizacao_sessoes_limite":"20","sessao_numero_na_autorizacao":"17","profissional":"Heitor Salles","profissional_registro":"CREFITO-3 156740-F","valor":"62.00","observacao_recepcao":"","data_lancamento":"2026-08-06"},{"id_guia":"G-2608-0019","unidade":"Norte","data_atendimento":"2026-08-03","paciente":"P-1044","convenio":"Plano Bem","carteirinha":"714537067","cid":"S83.5","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"AUT215021","autorizacao_validade":"2026-08-28","autorizacao_sessoes_limite":"12","sessao_numero_na_autorizacao":"3","profissional":"Gabriela Nunes","profissional_registro":"CREFITO-3 240117-F","valor":"62.00","observacao_recepcao":"","data_lancamento":"2026-08-05"},{"id_guia":"G-2608-0020","unidade":"Centro","data_atendimento":"2026-08-27","paciente":"P-1051","convenio":"Saúde Interior","carteirinha":"383159377","cid":"M25.5","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"AUT279594","autorizacao_validade":"2026-08-27","autorizacao_sessoes_limite":"20","sessao_numero_na_autorizacao":"18","profissional":"Diego Farias","profissional_registro":"CREFITO-3 221078-F","valor":"62.00","observacao_recepcao":"","data_lancamento":"2026-08-27"},{"id_guia":"G-2608-0021","unidade":"Norte","data_atendimento":"2026-08-25","paciente":"P-1005","convenio":"Vitalcard","carteirinha":"412497685","cid":"","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"AUT269230","autorizacao_validade":"2026-09-17","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"9","profissional":"Camila Torres","profissional_registro":"CREFITO-3 176590-F","valor":"62.00","observacao_recepcao":"Paciente chegou 10 min atrasado.","data_lancamento":"2026-08-27"},{"id_guia":"G-2608-0022","unidade":"Centro","data_atendimento":"2026-08-03","paciente":"P-1020","convenio":"Vitalcard","carteirinha":"232092060","cid":"M75.1","procedimento_codigo":"50000560","procedimento_descricao":"Sessão de fisioterapia neurofuncional","numero_autorizacao":"AUT819141","autorizacao_validade":"2026-08-07","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"2","profissional":"Elaine Moura","profissional_registro":"CREFITO-3 133455-F","valor":"70.00","observacao_recepcao":"Pediu recibo para reembolso do plano.","data_lancamento":"2026-08-05"},{"id_guia":"G-2608-0023","unidade":"Norte","data_atendimento":"2026-08-17","paciente":"P-1028","convenio":"Vitalcard","carteirinha":"825762789","cid":"M75.1","procedimento_codigo":"50000560","procedimento_descricao":"Sessão de fisioterapia neurofuncional","numero_autorizacao":"AUT819809","autorizacao_validade":"2026-07-25","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"4","profissional":"Ana Paula Ribeiro","profissional_registro":"CREFITO-3 118203-F","valor":"70.00","observacao_recepcao":"Confirmado pelo WhatsApp na véspera.","data_lancamento":"2026-08-19"},{"id_guia":"G-2608-0024","unidade":"Norte","data_atendimento":"2026-08-20","paciente":"P-1019","convenio":"Plano Bem","carteirinha":"880746286","cid":"M75.1","procedimento_codigo":"20103301","procedimento_descricao":"Consulta ortopédica","numero_autorizacao":"AUT411366","autorizacao_validade":"2026-08-23","autorizacao_sessoes_limite":"12","sessao_numero_na_autorizacao":"5","profissional":"Dr. Renato Albuquerque","profissional_registro":"CRM-SP 84512","valor":"90.00","observacao_recepcao":"Trouxe exame novo, anexado ao prontuário.","data_lancamento":"2026-08-22"},{"id_guia":"G-2608-0025","unidade":"Sul","data_atendimento":"2026-08-11","paciente":"P-1008","convenio":"Saúde Interior","carteirinha":"274079471","cid":"","procedimento_codigo":"20103301","procedimento_descricao":"Consulta ortopédica","numero_autorizacao":"AUT224028","autorizacao_validade":"2026-09-18","autorizacao_sessoes_limite":"20","sessao_numero_na_autorizacao":"2","profissional":"Dra. Marina Lopes","profissional_registro":"CRM-SP 112390","valor":"90.00","observacao_recepcao":"","data_lancamento":"2026-08-12"},{"id_guia":"G-2608-0026","unidade":"Norte","data_atendimento":"2026-08-20","paciente":"P-1025","convenio":"Saúde Interior","carteirinha":"504996268","cid":"M25.5","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"AUT794779","autorizacao_validade":"2026-09-29","autorizacao_sessoes_limite":"20","sessao_numero_na_autorizacao":"22","profissional":"Elaine Moura","profissional_registro":"CREFITO-3 133455-F","valor":"62.00","observacao_recepcao":"","data_lancamento":"2026-08-21"},{"id_guia":"G-2608-0027","unidade":"Sul","data_atendimento":"26/08/2026","paciente":"P-1051","convenio":"Vitalcard","carteirinha":"258573823","cid":"S83.5","procedimento_codigo":"20103301","procedimento_descricao":"Consulta ortopédica","numero_autorizacao":"AUT124496","autorizacao_validade":"2026-09-19","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"7","profissional":"Dr. Otávio Prado","profissional_registro":"CRM-SP 97731","valor":"90.00","observacao_recepcao":"","data_lancamento":"2026-08-28"},{"id_guia":"G-2608-0028","unidade":"Norte","data_atendimento":"2026-08-27","paciente":"P-1042","convenio":"Saúde Interior","carteirinha":"984531678","cid":"G81.9","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"AUT457263","autorizacao_validade":"2026-08-18","autorizacao_sessoes_limite":"20","sessao_numero_na_autorizacao":"6","profissional":"Felipe Andrade","profissional_registro":"CREFITO-3 198302-F","valor":"62.00","observacao_recepcao":"Pediu recibo para reembolso do plano.","data_lancamento":"2026-08-29"},{"id_guia":"G-2608-0029","unidade":"Sul","data_atendimento":"2026-08-04","paciente":"P-1058","convenio":"Vitalcard","carteirinha":"528502793","cid":"M51.1","procedimento_codigo":"50000560","procedimento_descricao":"Sessão de fisioterapia neurofuncional","numero_autorizacao":"AUT928546","autorizacao_validade":"2026-08-14","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"3","profissional":"Diego Farias","profissional_registro":"CREFITO-3 221078-F","valor":"70.00","observacao_recepcao":"","data_lancamento":"2026-08-06"},{"id_guia":"G-2608-0030","unidade":"Sul","data_atendimento":"2026-08-21","paciente":"P-1044","convenio":"Vitalcard","carteirinha":"723392705","cid":"G81.9","procedimento_codigo":"50000560","procedimento_descricao":"Sessão de fisioterapia neurofuncional","numero_autorizacao":"AUT297029","autorizacao_validade":"2026-08-17","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"8","profissional":"Felipe Andrade","profissional_registro":"CREFITO-3 198302-F","valor":"70.00","observacao_recepcao":"Paciente trouxe autorização nova, número ainda não lançado. Validade 30/09.","data_lancamento":"2026-08-24"},{"id_guia":"G-2608-0031","unidade":"Centro","data_atendimento":"2026-08-04","paciente":"P-1024","convenio":"Vitalcard","carteirinha":"687040990","cid":"G81.9","procedimento_codigo":"50000560","procedimento_descricao":"Sessão de fisioterapia neurofuncional","numero_autorizacao":"AUT244662","autorizacao_validade":"2026-08-01","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"3","profissional":"Felipe Andrade","profissional_registro":"CREFITO-3 198302-F","valor":"70.00","observacao_recepcao":"","data_lancamento":"2026-08-04"},{"id_guia":"G-2608-0032","unidade":"Sul","data_atendimento":"2026-08-19","paciente":"P-1034","convenio":"Saúde Interior","carteirinha":"971928504","cid":"","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"AUT265721","autorizacao_validade":"2026-07-26","autorizacao_sessoes_limite":"20","sessao_numero_na_autorizacao":"18","profissional":"Elaine Moura","profissional_registro":"CREFITO-3 133455-F","valor":"62.00","observacao_recepcao":"Pediu recibo para reembolso do plano.","data_lancamento":"2026-08-19"},{"id_guia":"G-2608-0033","unidade":"Centro","data_atendimento":"2026-08-14","paciente":"P-1019","convenio":"Vitalcard","carteirinha":"417067202","cid":"G81.9","procedimento_codigo":"50000560","procedimento_descricao":"Sessão de fisioterapia neurofuncional","numero_autorizacao":"AUT474575","autorizacao_validade":"2026-08-18","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"4","profissional":"Felipe Andrade","profissional_registro":"","valor":"70.00","observacao_recepcao":"","data_lancamento":"2026-08-17"},{"id_guia":"G-2608-0034","unidade":"Sul","data_atendimento":"2026-08-24","paciente":"P-1002","convenio":"Vitalcard","carteirinha":"292868844","cid":"M51.1","procedimento_codigo":"50000560","procedimento_descricao":"Sessão de fisioterapia neurofuncional","numero_autorizacao":"AUT665283","autorizacao_validade":"2026-08-30","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"3","profissional":"Ana Paula Ribeiro","profissional_registro":"CREFITO-3 118203-F","valor":"70.00","observacao_recepcao":"Sessão remarcada de 12/08 para hoje, autorização era da data original.","data_lancamento":"2026-08-25"},{"id_guia":"G-2608-0035","unidade":"Norte","data_atendimento":"2026-08-03","paciente":"P-1014","convenio":"Plano Bem","carteirinha":"671372476","cid":"M17.1","procedimento_codigo":"20103301","procedimento_descricao":"Consulta ortopédica","numero_autorizacao":"AUT728617","autorizacao_validade":"2026-08-17","autorizacao_sessoes_limite":"12","sessao_numero_na_autorizacao":"2","profissional":"Dr. Renato Albuquerque","profissional_registro":"CRM-SP 84512","valor":"90.00","observacao_recepcao":"","data_lancamento":"2026-08-04"},{"id_guia":"G-2608-0036","unidade":"Norte","data_atendimento":"2026-08-05","paciente":"P-1042","convenio":"Vitalcard","carteirinha":"226217248","cid":"M51.1","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"AUT597424","autorizacao_validade":"2026-08-20","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"5","profissional":"Heitor Salles","profissional_registro":"CREFITO-3 156740-F","valor":"62.00","observacao_recepcao":"","data_lancamento":"2026-08-05"},{"id_guia":"G-2608-0037","unidade":"Centro","data_atendimento":"2026-08-27","paciente":"P-1006","convenio":"Saúde Interior","carteirinha":"968033334","cid":"G81.9","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"AUT378191","autorizacao_validade":"2026-09-21","autorizacao_sessoes_limite":"20","sessao_numero_na_autorizacao":"3","profissional":"Felipe Andrade","profissional_registro":"CREFITO-3 198302-F","valor":"62.00","observacao_recepcao":"","data_lancamento":"2026-08-28"},{"id_guia":"G-2608-0038","unidade":"Centro","data_atendimento":"2026-08-24","paciente":"P-1052","convenio":"Vitalcard","carteirinha":"597149981","cid":"S83.5","procedimento_codigo":"50000560","procedimento_descricao":"Sessão de fisioterapia neurofuncional","numero_autorizacao":"AUT822637","autorizacao_validade":"2026-09-08","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"6","profissional":"Felipe Andrade","profissional_registro":"CREFITO-3 198302-F","valor":"70.00","observacao_recepcao":"Confirmado pelo WhatsApp na véspera.","data_lancamento":"2026-08-26"},{"id_guia":"G-2608-0039","unidade":"Norte","data_atendimento":"2026-08-07","paciente":"P-1022","convenio":"Vitalcard","carteirinha":"997268148","cid":"M75.1","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"AUT435580","autorizacao_validade":"2026-08-24","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"3","profissional":"Gabriela Nunes","profissional_registro":"CREFITO-3 240117-F","valor":"62.00","observacao_recepcao":"Paciente pediu para faturar como particular, não quer usar o convênio.","data_lancamento":"2026-08-10"},{"id_guia":"G-2608-0040","unidade":"Centro","data_atendimento":"2026-08-17","paciente":"P-1037","convenio":"Vitalcard","carteirinha":"591842424","cid":"M25.5","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"AUT518854","autorizacao_validade":"2026-08-24","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"2","profissional":"Elaine Moura","profissional_registro":"CREFITO-3 133455-F","valor":"62.00","observacao_recepcao":"","data_lancamento":"2026-08-19"},{"id_guia":"G-2608-0041","unidade":"Centro","data_atendimento":"2026-08-20","paciente":"P-1026","convenio":"Saúde Interior","carteirinha":"877857320","cid":"G81.9","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"","autorizacao_validade":"2026-09-14","autorizacao_sessoes_limite":"20","sessao_numero_na_autorizacao":"11","profissional":"Heitor Salles","profissional_registro":"CREFITO-3 156740-F","valor":"62.00","observacao_recepcao":"Autorizado por telefone, protocolo 771203, aguardando número.","data_lancamento":"2026-08-21"},{"id_guia":"G-2608-0042","unidade":"Centro","data_atendimento":"2026-08-24","paciente":"P-1015","convenio":"Vitalcard","carteirinha":"783189853","cid":"M75.1","procedimento_codigo":"50000560","procedimento_descricao":"Sessão de fisioterapia neurofuncional","numero_autorizacao":"AUT792769","autorizacao_validade":"2026-09-06","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"1","profissional":"Gabriela Nunes","profissional_registro":"CREFITO-3 240117-F","valor":"70.00","observacao_recepcao":"Paciente chegou 10 min atrasado.","data_lancamento":"2026-08-26"},{"id_guia":"G-2608-0043","unidade":"Centro","data_atendimento":"2026-08-28","paciente":"P-1045","convenio":"Vitalcard","carteirinha":"301490457","cid":"M54.5","procedimento_codigo":"50000560","procedimento_descricao":"Sessão de fisioterapia neurofuncional","numero_autorizacao":"AUT200236","autorizacao_validade":"2026-09-20","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"6","profissional":"Heitor Salles","profissional_registro":"CREFITO-3 156740-F","valor":"70.00","observacao_recepcao":"","data_lancamento":"2026-08-30"},{"id_guia":"G-2608-0044","unidade":"Norte","data_atendimento":"2026-08-14","paciente":"P-1034","convenio":"Plano Bem","carteirinha":"831368850","cid":"M17.1","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"AUT213304","autorizacao_validade":"2026-08-22","autorizacao_sessoes_limite":"12","sessao_numero_na_autorizacao":"10","profissional":"Diego Farias","profissional_registro":"CREFITO-3 221078-F","valor":"62.00","observacao_recepcao":"","data_lancamento":"2026-08-16"},{"id_guia":"G-2608-0045","unidade":"Norte","data_atendimento":"2026-08-25","paciente":"P-1022","convenio":"Plano Bem","carteirinha":"468892713","cid":"M51.1","procedimento_codigo":"50000012","procedimento_descricao":"Reavaliação fisioterapêutica","numero_autorizacao":"AUT433256","autorizacao_validade":"2026-09-11","autorizacao_sessoes_limite":"12","sessao_numero_na_autorizacao":"8","profissional":"Dr. Otávio Prado","profissional_registro":"CRM-SP 97731","valor":"55.00","observacao_recepcao":"","data_lancamento":"2026-08-28"},{"id_guia":"G-2608-0046","unidade":"Norte","data_atendimento":"2026-08-24","paciente":"P-1024","convenio":"Vitalcard","carteirinha":"372572358","cid":"M79.7","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"AUT308387","autorizacao_validade":"2026-08-18","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"1","profissional":"Elaine Moura","profissional_registro":"CREFITO-3 133455-F","valor":"62.00","observacao_recepcao":"Confirmado pelo WhatsApp na véspera.","data_lancamento":"2026-08-26"},{"id_guia":"G-2608-0047","unidade":"Sul","data_atendimento":"2026-08-27","paciente":"P-1047","convenio":"Saúde Interior","carteirinha":"875310181","cid":"","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"AUT633684","autorizacao_validade":"2026-08-15","autorizacao_sessoes_limite":"20","sessao_numero_na_autorizacao":"14","profissional":"Elaine Moura","profissional_registro":"CREFITO-3 133455-F","valor":"62.00","observacao_recepcao":"Pediu recibo para reembolso do plano.","data_lancamento":"2026-08-29"},{"id_guia":"G-2608-0048","unidade":"Norte","data_atendimento":"2026-08-17","paciente":"P-1005","convenio":"Plano Bem","carteirinha":"703488905","cid":"M17.1","procedimento_codigo":"50000560","procedimento_descricao":"Sessão de fisioterapia neurofuncional","numero_autorizacao":"AUT896208","autorizacao_validade":"2026-10-01","autorizacao_sessoes_limite":"12","sessao_numero_na_autorizacao":"6","profissional":"Felipe Andrade","profissional_registro":"CREFITO-3 198302-F","valor":"70.00","observacao_recepcao":"Paciente chegou 10 min atrasado.","data_lancamento":"2026-08-20"},{"id_guia":"G-2608-0049","unidade":"Norte","data_atendimento":"2026-08-21","paciente":"P-1055","convenio":"Saúde Interior","carteirinha":"665407417","cid":"S83.5","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"AUT930138","autorizacao_validade":"2026-08-07","autorizacao_sessoes_limite":"20","sessao_numero_na_autorizacao":"7","profissional":"Diego Farias","profissional_registro":"CREFITO-3 221078-F","valor":"62.00","observacao_recepcao":"Paciente chegou 10 min atrasado.","data_lancamento":"2026-08-24"},{"id_guia":"G-2608-0050","unidade":"Centro","data_atendimento":"2026-08-19","paciente":"P-1036","convenio":"Vitalcard","carteirinha":"856792353","cid":"M17.1","procedimento_codigo":"50000560","procedimento_descricao":"Sessão de fisioterapia neurofuncional","numero_autorizacao":"AUT864141","autorizacao_validade":"2026-08-03","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"4","profissional":"Felipe Andrade","profissional_registro":"CREFITO-3 198302-F","valor":"70.00","observacao_recepcao":"","data_lancamento":"2026-08-20"},{"id_guia":"G-2608-0051","unidade":"Centro","data_atendimento":"2026-08-13","paciente":"P-1035","convenio":"Saúde Interior","carteirinha":"844049786","cid":"M79.7","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"","autorizacao_validade":"2026-09-04","autorizacao_sessoes_limite":"20","sessao_numero_na_autorizacao":"6","profissional":"Ana Paula Ribeiro","profissional_registro":"CREFITO-3 118203-F","valor":"62.00","observacao_recepcao":"","data_lancamento":"2026-08-13"},{"id_guia":"G-2608-0052","unidade":"Centro","data_atendimento":"2026-08-26","paciente":"P-1024","convenio":"Saúde Interior","carteirinha":"682768978","cid":"M25.5","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"AUT262548","autorizacao_validade":"2026-08-30","autorizacao_sessoes_limite":"20","sessao_numero_na_autorizacao":"10","profissional":"Gabriela Nunes","profissional_registro":"CREFITO-3 240117-F","valor":"62.00","observacao_recepcao":"Confirmado pelo WhatsApp na véspera.","data_lancamento":"2026-08-27"},{"id_guia":"G-2608-0053","unidade":"Norte","data_atendimento":"2026-08-04","paciente":"P-1046","convenio":"Saúde Interior","carteirinha":"849975299","cid":"","procedimento_codigo":"20103301","procedimento_descricao":"Consulta ortopédica","numero_autorizacao":"AUT369722","autorizacao_validade":"2026-08-13","autorizacao_sessoes_limite":"20","sessao_numero_na_autorizacao":"12","profissional":"Dr. Renato Albuquerque","profissional_registro":"CRM-SP 84512","valor":"90.00","observacao_recepcao":"Confirmado pelo WhatsApp na véspera.","data_lancamento":"2026-08-04"},{"id_guia":"G-2608-0054","unidade":"Centro","data_atendimento":"2026-08-20","paciente":"P-1043","convenio":"Vitalcard","carteirinha":"631027380","cid":"S83.5","procedimento_codigo":"50000560","procedimento_descricao":"Sessão de fisioterapia neurofuncional","numero_autorizacao":"AUT490436","autorizacao_validade":"2026-08-29","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"3","profissional":"Bruno Castanho","profissional_registro":"CREFITO-3 204411-F","valor":"70.00","observacao_recepcao":"","data_lancamento":"2026-08-23"},{"id_guia":"G-2608-0055","unidade":"Sul","data_atendimento":"2026-08-14","paciente":"P-1036","convenio":"Saúde Interior","carteirinha":"751341162","cid":"S83.5","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"AUT874952","autorizacao_validade":"2026-09-26","autorizacao_sessoes_limite":"20","sessao_numero_na_autorizacao":"15","profissional":"Felipe Andrade","profissional_registro":"CREFITO-3 198302-F","valor":"62.00","observacao_recepcao":"","data_lancamento":"2026-08-14"},{"id_guia":"G-2608-0056","unidade":"Centro","data_atendimento":"2026-08-10","paciente":"P-1028","convenio":"Plano Bem","carteirinha":"132751084","cid":"","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"AUT779679","autorizacao_validade":"2026-08-26","autorizacao_sessoes_limite":"12","sessao_numero_na_autorizacao":"14","profissional":"Camila Torres","profissional_registro":"CREFITO-3 176590-F","valor":"62.00","observacao_recepcao":"Paciente chegou 10 min atrasado.","data_lancamento":"2026-08-12"},{"id_guia":"G-2608-0057","unidade":"Sul","data_atendimento":"2026-08-26","paciente":"P-1051","convenio":"Vitalcard","carteirinha":"258573823","cid":"S83.5","procedimento_codigo":"20103301","procedimento_descricao":"Consulta ortopédica","numero_autorizacao":"AUT124496","autorizacao_validade":"2026-09-19","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"7","profissional":"Dr. Otávio Prado","profissional_registro":"CRM-SP 97731","valor":"90.00","observacao_recepcao":"","data_lancamento":"2026-08-29"},{"id_guia":"G-2608-0058","unidade":"Centro","data_atendimento":"2026-08-05","paciente":"P-1053","convenio":"Saúde Interior","carteirinha":"955183875","cid":"M75.1","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"AUT953104","autorizacao_validade":"2026-09-06","autorizacao_sessoes_limite":"20","sessao_numero_na_autorizacao":"15","profissional":"Felipe Andrade","profissional_registro":"CREFITO-3 198302-F","valor":"62.00","observacao_recepcao":"Paciente chegou 10 min atrasado.","data_lancamento":"2026-08-07"},{"id_guia":"G-2608-0059","unidade":"Sul","data_atendimento":"2026-08-27","paciente":"P-1052","convenio":"Vitalcard","carteirinha":"717376382","cid":"M79.7","procedimento_codigo":"50000560","procedimento_descricao":"Sessão de fisioterapia neurofuncional","numero_autorizacao":"AUT743137","autorizacao_validade":"2026-09-02","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"7","profissional":"Bruno Castanho","profissional_registro":"CREFITO-3 204411-F","valor":"70.00","observacao_recepcao":"","data_lancamento":"2026-08-27"},{"id_guia":"G-2608-0060","unidade":"Norte","data_atendimento":"2026-08-19","paciente":"P-1017","convenio":"Vitalcard","carteirinha":"119580163","cid":"M54.5","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"AUT885310","autorizacao_validade":"2026-08-24","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"3","profissional":"Ana Paula Ribeiro","profissional_registro":"CREFITO-3 118203-F","valor":"62.00","observacao_recepcao":"","data_lancamento":"2026-08-19"},{"id_guia":"G-2608-0061","unidade":"Centro","data_atendimento":"2026-08-14","paciente":"P-1058","convenio":"Saúde Interior","carteirinha":"603228690","cid":"","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"","autorizacao_validade":"2026-09-16","autorizacao_sessoes_limite":"20","sessao_numero_na_autorizacao":"8","profissional":"Felipe Andrade","profissional_registro":"CREFITO-3 198302-F","valor":"62.00","observacao_recepcao":"","data_lancamento":"2026-08-16"},{"id_guia":"G-2608-0062","unidade":"Norte","data_atendimento":"2026-08-11","paciente":"P-1038","convenio":"Vitalcard","carteirinha":"509760188","cid":"M79.7","procedimento_codigo":"50000560","procedimento_descricao":"Sessão de fisioterapia neurofuncional","numero_autorizacao":"AUT655655","autorizacao_validade":"2026-09-07","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"2","profissional":"Camila Torres","profissional_registro":"CREFITO-3 176590-F","valor":"70.00","observacao_recepcao":"","data_lancamento":"2026-08-14"},{"id_guia":"G-2608-0063","unidade":"Sul","data_atendimento":"2026-08-07","paciente":"P-1021","convenio":"Plano Bem","carteirinha":"387019563","cid":"M25.5","procedimento_codigo":"50000560","procedimento_descricao":"Sessão de fisioterapia neurofuncional","numero_autorizacao":"","autorizacao_validade":"2026-08-28","autorizacao_sessoes_limite":"12","sessao_numero_na_autorizacao":"4","profissional":"Ana Paula Ribeiro","profissional_registro":"CREFITO-3 118203-F","valor":"70.00","observacao_recepcao":"","data_lancamento":"2026-08-07"},{"id_guia":"G-2608-0064","unidade":"Norte","data_atendimento":"2026-08-27","paciente":"P-1036","convenio":"Vitalcard","carteirinha":"282603474","cid":"M79.7","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"AUT525093","autorizacao_validade":"2026-09-10","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"12","profissional":"Camila Torres","profissional_registro":"CREFITO-3 176590-F","valor":"62.00","observacao_recepcao":"","data_lancamento":"2026-08-27"},{"id_guia":"G-2608-0065","unidade":"Sul","data_atendimento":"2026-08-11","paciente":"P-1011","convenio":"Plano Bem","carteirinha":"663415336","cid":"G81.9","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"AUT492417","autorizacao_validade":"2026-08-17","autorizacao_sessoes_limite":"12","sessao_numero_na_autorizacao":"5","profissional":"Ana Paula Ribeiro","profissional_registro":"CREFITO-3 118203-F","valor":"62,00","observacao_recepcao":"","data_lancamento":"2026-08-13"},{"id_guia":"G-2608-0066","unidade":"Norte","data_atendimento":"2026-08-21","paciente":"P-1057","convenio":"Vitalcard","carteirinha":"845031138","cid":"M79.7","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"AUT981743","autorizacao_validade":"2026-09-10","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"1","profissional":"Diego Farias","profissional_registro":"CREFITO-3 221078-F","valor":"62.00","observacao_recepcao":"Pediu recibo para reembolso do plano.","data_lancamento":"2026-08-21"},{"id_guia":"G-2608-0067","unidade":"Centro","data_atendimento":"2026-08-04","paciente":"P-1005","convenio":"Plano Bem","carteirinha":"399705635","cid":"S83.5","procedimento_codigo":"50000560","procedimento_descricao":"Sessão de fisioterapia neurofuncional","numero_autorizacao":"AUT107657","autorizacao_validade":"2026-08-25","autorizacao_sessoes_limite":"12","sessao_numero_na_autorizacao":"2","profissional":"Diego Farias","profissional_registro":"CREFITO-3 221078-F","valor":"70.00","observacao_recepcao":"Paciente chegou 10 min atrasado.","data_lancamento":"2026-08-04"},{"id_guia":"G-2608-0068","unidade":"Norte","data_atendimento":"2026-08-24","paciente":"P-1035","convenio":"Saúde Interior","carteirinha":"521959144","cid":"S83.5","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"AUT132971","autorizacao_validade":"2026-08-30","autorizacao_sessoes_limite":"20","sessao_numero_na_autorizacao":"18","profissional":"Camila Torres","profissional_registro":"CREFITO-3 176590-F","valor":"62.00","observacao_recepcao":"","data_lancamento":"2026-08-27"},{"id_guia":"G-2608-0069","unidade":"Centro","data_atendimento":"2026-08-28","paciente":"P-1036","convenio":"Vitalcard","carteirinha":"314064769","cid":"M51.1","procedimento_codigo":"20103301","procedimento_descricao":"Consulta ortopédica","numero_autorizacao":"AUT519252","autorizacao_validade":"2026-09-05","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"3","profissional":"Dr. Otávio Prado","profissional_registro":"CRM-SP 97731","valor":"90.00","observacao_recepcao":"Procedimento realizado foi drenagem linfática, lançar o código certo.","data_lancamento":"2026-08-29"},{"id_guia":"G-2608-0070","unidade":"Sul","data_atendimento":"2026-08-07","paciente":"P-1053","convenio":"Saúde Interior","carteirinha":"978404597","cid":"M17.1","procedimento_codigo":"20103301","procedimento_descricao":"Consulta ortopédica","numero_autorizacao":"AUT820068","autorizacao_validade":"2026-09-15","autorizacao_sessoes_limite":"20","sessao_numero_na_autorizacao":"17","profissional":"Dr. Renato Albuquerque","profissional_registro":"CRM-SP 84512","valor":"90.00","observacao_recepcao":"Confirmado pelo WhatsApp na véspera.","data_lancamento":"2026-08-08"},{"id_guia":"G-2608-0071","unidade":"Norte","data_atendimento":"2026-08-19","paciente":"P-1043","convenio":"Saúde Interior","carteirinha":"708548698","cid":"M51.1","procedimento_codigo":"20103301","procedimento_descricao":"Consulta ortopédica","numero_autorizacao":"AUT187263","autorizacao_validade":"2026-08-27","autorizacao_sessoes_limite":"20","sessao_numero_na_autorizacao":"16","profissional":"Dr. Renato Albuquerque","profissional_registro":"CRM-SP 84512","valor":"90.00","observacao_recepcao":"","data_lancamento":"2026-08-19"},{"id_guia":"G-2608-0072","unidade":"Centro","data_atendimento":"2026-08-14","paciente":"P-1035","convenio":"Saúde Interior","carteirinha":"111258813","cid":"","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"AUT459190","autorizacao_validade":"2026-08-10","autorizacao_sessoes_limite":"20","sessao_numero_na_autorizacao":"6","profissional":"Gabriela Nunes","profissional_registro":"CREFITO-3 240117-F","valor":"62.00","observacao_recepcao":"","data_lancamento":"2026-08-17"},{"id_guia":"G-2608-0073","unidade":"Centro","data_atendimento":"2026-08-28","paciente":"P-1009","convenio":"Saúde Interior","carteirinha":"104270271","cid":"","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"AUT426195","autorizacao_validade":"2026-10-02","autorizacao_sessoes_limite":"20","sessao_numero_na_autorizacao":"16","profissional":"Heitor Salles","profissional_registro":"CREFITO-3 156740-F","valor":"62.00","observacao_recepcao":"","data_lancamento":"2026-08-31"},{"id_guia":"G-2608-0074","unidade":"Norte","data_atendimento":"2026-08-14","paciente":"P-1001","convenio":"Plano Bem","carteirinha":"576826004","cid":"M75.1","procedimento_codigo":"50000012","procedimento_descricao":"Reavaliação fisioterapêutica","numero_autorizacao":"AUT200907","autorizacao_validade":"2026-08-26","autorizacao_sessoes_limite":"12","sessao_numero_na_autorizacao":"12","profissional":"Dr. Otávio Prado","profissional_registro":"CRM-SP 97731","valor":"55.00","observacao_recepcao":"","data_lancamento":"2026-08-16"},{"id_guia":"G-2608-0075","unidade":"Sul","data_atendimento":"2026-08-13","paciente":"P-1054","convenio":"Vitalcard","carteirinha":"419328871","cid":"G81.9","procedimento_codigo":"20103301","procedimento_descricao":"Consulta ortopédica","numero_autorizacao":"AUT567609","autorizacao_validade":"2026-08-11","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"8","profissional":"Dra. Marina Lopes","profissional_registro":"CRM-SP 112390","valor":"90.00","observacao_recepcao":"","data_lancamento":"2026-08-16"},{"id_guia":"G-2608-0076","unidade":"Sul","data_atendimento":"2026-08-27","paciente":"P-1052","convenio":"Vitalcard","carteirinha":"717376382","cid":"M79.7","procedimento_codigo":"50000560","procedimento_descricao":"Sessão de fisioterapia neurofuncional","numero_autorizacao":"AUT743137","autorizacao_validade":"2026-09-02","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"7","profissional":"Bruno Castanho","profissional_registro":"CREFITO-3 204411-F","valor":"70.00","observacao_recepcao":"","data_lancamento":"2026-08-28"},{"id_guia":"G-2608-0077","unidade":"Norte","data_atendimento":"2026-08-12","paciente":"P-1042","convenio":"Plano Bem","carteirinha":"676061062","cid":"M25.5","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"AUT317753","autorizacao_validade":"2026-09-08","autorizacao_sessoes_limite":"12","sessao_numero_na_autorizacao":"15","profissional":"Camila Torres","profissional_registro":"CREFITO-3 176590-F","valor":"62.00","observacao_recepcao":"","data_lancamento":"2026-08-14"},{"id_guia":"G-2608-0078","unidade":"Centro","data_atendimento":"2026-08-18","paciente":"P-1033","convenio":"Plano Bem","carteirinha":"424296478","cid":"M54.5","procedimento_codigo":"50000560","procedimento_descricao":"Sessão de fisioterapia neurofuncional","numero_autorizacao":"AUT870635","autorizacao_validade":"2026-10-15","autorizacao_sessoes_limite":"12","sessao_numero_na_autorizacao":"8","profissional":"Gabriela Nunes","profissional_registro":"CREFITO-3 240117-F","valor":"70.00","observacao_recepcao":"","data_lancamento":"2026-08-19"},{"id_guia":"G-2608-0079","unidade":"Norte","data_atendimento":"2026-08-19","paciente":"P-1040","convenio":"Vitalcard","carteirinha":"429775629","cid":"M54.5","procedimento_codigo":"50000560","procedimento_descricao":"Sessão de fisioterapia neurofuncional","numero_autorizacao":"AUT938467","autorizacao_validade":"2026-09-11","autorizacao_sessoes_limite":"10","sessao_numero_na_autorizacao":"8","profissional":"Camila Torres","profissional_registro":"CREFITO-3 176590-F","valor":"70.00","observacao_recepcao":"","data_lancamento":"2026-08-21"},{"id_guia":"G-2608-0080","unidade":"Sul","data_atendimento":"2026-08-28","paciente":"P-1023","convenio":"Saúde Interior","carteirinha":"906635907","cid":"S83.5","procedimento_codigo":"50000470","procedimento_descricao":"Sessão de fisioterapia musculoesquelética","numero_autorizacao":"AUT114155","autorizacao_validade":"2026-10-02","autorizacao_sessoes_limite":"20","sessao_numero_na_autorizacao":"12","profissional":"Diego Farias","profissional_registro":"CREFITO-3 221078-F","valor":"62.00","observacao_recepcao":"Trouxe exame novo, anexado ao prontuário.","data_lancamento":"2026-08-31"}]</script>
-<script>window.GUIAS = JSON.parse(document.getElementById("guias").textContent);</script>
-<script>"use strict";(()=>{function f(o){let t=(o||"").trim();if(!t)return null;let e;return(e=t.match(/^(\d{4})-(\d{2})-(\d{2})$/))?new Date(Date.UTC(+e[1],+e[2]-1,+e[3])):(e=t.match(/^(\d{2})\/(\d{2})\/(\d{4})$/))?new Date(Date.UTC(+e[3],+e[2]-1,+e[1])):null}function x(o,t){return Math.round((t.getTime()-o.getTime())/864e5)}function g(o){let t=(o||"").trim().replace(/\./g,"").replace(",","."),e=(o||"").trim().replace(",","."),r=Number(e);return Number.isFinite(r)?r:null}function M(o){let t=(o||"").toLowerCase(),e={faturarParticular:!1,codigoErrado:null,autorizacaoPendente:!1,remarcada:!1};if(!t)return e;/faturar como particular|não quer usar o convênio|nao quer usar o convenio/.test(t)&&(e.faturarParticular=!0);let r=t.match(/procedimento (?:realizado )?foi ([^,.;]+)/);return r&&/c[oó]digo certo|c[oó]digo errado|lan[çc]ar o c[oó]digo/.test(t)&&(e.codigoErrado=r[1].trim()),/aguardando n[uú]mero|n[uú]mero ainda não lançado|numero ainda nao lancado|autorizado por telefone|autoriza[çc][ãa]o nova|autoriza[çc][ãa]o verbal|protocolo/.test(t)&&(e.autorizacaoPendente=!0),/remarcad|autoriza[çc][ãa]o era da data original/.test(t)&&(e.remarcada=!0),e}function R(o,t){let e=[],r=(n,P,S,$="bloqueia")=>e.push({tipo:n,motivo:P,corrigir:S,severidade:$}),s=t.procedimentos.find(n=>n.codigo===o.procedimento_codigo),a=t.convenios.find(n=>n.nome===o.convenio),i=M(o.observacao_recepcao),c=s?s.descricao:o.procedimento_descricao||o.procedimento_codigo;if(i.faturarParticular){r("RECLASSIFICAR_PARTICULAR","Recep\xE7\xE3o anotou que o paciente pediu para faturar como particular.","Retirar do lote de conv\xEAnio e faturar como particular; n\xE3o enviar esta guia ao conv\xEAnio.");let n=g(o.valor)??0;return{id_guia:o.id_guia,convenio:o.convenio,procedimento:c,decisao:"PENDENTE",problemas:e,valor_em_risco:n}}if(!a){r("CONVENIO_DESCONHECIDO",`Conv\xEAnio "${o.convenio}" n\xE3o est\xE1 nas regras.`,"Conferir o nome do conv\xEAnio na guia.");let n=g(o.valor)??0;return{id_guia:o.id_guia,convenio:o.convenio,procedimento:c,decisao:"PENDENTE",problemas:e,valor_em_risco:n}}if(i.codigoErrado&&r("CODIGO_ERRADO",`Recep\xE7\xE3o anotou que o procedimento foi "${i.codigoErrado}", diferente do lan\xE7ado (${c}).`,"Corrigir o c\xF3digo do procedimento para o que foi realmente realizado antes de enviar."),s||r("PROCEDIMENTO_DESCONHECIDO",`Procedimento ${o.procedimento_codigo} n\xE3o est\xE1 na tabela.`,"Conferir o c\xF3digo do procedimento."),s&&!a.procedimentos_cobertos.includes(o.procedimento_codigo)){let n=/consulta/i.test(s.descricao)&&/não cobre|nao cobre/i.test(a.observacao);r("PROCEDIMENTO_NAO_COBERTO",`${a.nome} n\xE3o cobre ${s.descricao}.`,n?"Faturar como particular (o conv\xEAnio n\xE3o cobre consulta).":"Conferir cobertura; provavelmente faturar como particular.")}let d=a.campos_obrigatorios.filter(n=>!(o[n]||"").trim()),m=d.indexOf("numero_autorizacao");if(m>=0&&i.autorizacaoPendente){d.splice(m,1);let n=/verbal|telefone|protocolo/i.test(a.observacao);r("AUTORIZACAO_PENDENTE","Autoriza\xE7\xE3o informada na observa\xE7\xE3o, mas o n\xFAmero ainda n\xE3o foi lan\xE7ado.",n?"Lan\xE7ar o n\xFAmero da autoriza\xE7\xE3o antes de enviar (o conv\xEAnio aceita verbal com protocolo por poucos dias).":"Lan\xE7ar o n\xFAmero da autoriza\xE7\xE3o antes de enviar.")}d.length&&r("CAMPO_OBRIGATORIO_VAZIO",`Falta(m) campo(s) que ${a.nome} exige: ${d.join(", ")}.`,`Preencher: ${d.join(", ")}.`);let u=f(o.data_atendimento),E=f(o.autorizacao_validade);u&&E&&E.getTime()<u.getTime()&&(i.autorizacaoPendente?e.some(n=>n.tipo==="AUTORIZACAO_PENDENTE")||r("AUTORIZACAO_PENDENTE","Validade lan\xE7ada est\xE1 vencida, mas a observa\xE7\xE3o informa autoriza\xE7\xE3o nova aguardando lan\xE7amento.","Lan\xE7ar a nova autoriza\xE7\xE3o (n\xFAmero e validade) antes de enviar."):i.remarcada?r("AUTORIZACAO_REMARCACAO","Sess\xE3o remarcada; a autoriza\xE7\xE3o era da data original e pode n\xE3o cobrir a nova data.","Confirmar se a autoriza\xE7\xE3o vale para a data remarcada; renovar se preciso."):r("AUTORIZACAO_VENCIDA",`Autoriza\xE7\xE3o venceu em ${o.autorizacao_validade}, antes do atendimento em ${o.data_atendimento}.`,"Renovar a autoriza\xE7\xE3o antes de enviar."));let _=Number(o.sessao_numero_na_autorizacao);Number.isFinite(_)&&_>a.limite_sessoes_por_autorizacao&&r("SESSAO_ALEM_DO_LIMITE",`Sess\xE3o ${_} passa do limite de ${a.limite_sessoes_por_autorizacao} do ${a.nome}.`,"Emitir nova autoriza\xE7\xE3o (o limite por autoriza\xE7\xE3o foi atingido).");let p=Number(o.autorizacao_sessoes_limite);Number.isFinite(p)&&p!==a.limite_sessoes_por_autorizacao&&r("LIMITE_DIVERGENTE",`Limite lan\xE7ado (${p}) difere do limite do ${a.nome} (${a.limite_sessoes_por_autorizacao}).`,"Conferir o limite de sess\xF5es da autoriza\xE7\xE3o.","aviso");let O=f(o.data_lancamento);if(u&&O){let n=x(u,O);n>a.prazo_envio_dias&&r("PRAZO_ENVIO_ESTOURADO",`${n} dias entre atendimento e lan\xE7amento; o ${a.nome} recusa ap\xF3s ${a.prazo_envio_dias}.`,"Enviar imediatamente; risco de recusa por prazo.")}let l=g(o.valor);s&&l!==null&&Math.abs(l-s.valor_referencia)>.001&&r("VALOR_DIVERGENTE",`Valor R$ ${l.toFixed(2)} difere da refer\xEAncia de ${s.descricao} (R$ ${s.valor_referencia.toFixed(2)}).`,`Ajustar o valor para R$ ${s.valor_referencia.toFixed(2)}.`,"aviso");let v=(o.profissional_registro||"").toUpperCase(),I=o.procedimento_codigo.startsWith("5"),N=o.procedimento_codigo==="20103301"||o.procedimento_codigo==="40201015";v&&(I&&!v.includes("CREFITO")&&r("REGISTRO_INCONSISTENTE",`Procedimento de fisioterapia com registro ${o.profissional_registro} (esperado CREFITO).`,"Conferir o profissional/registro lan\xE7ado."),N&&!v.includes("CRM")&&r("REGISTRO_INCONSISTENTE",`Procedimento m\xE9dico com registro ${o.profissional_registro} (esperado CRM).`,"Conferir o profissional/registro lan\xE7ado."));let b=e.some(n=>n.severidade==="bloqueia"),T=b?"PENDENTE":"OK",D=b?l??0:0;return{id_guia:o.id_guia,convenio:o.convenio,procedimento:c,decisao:T,problemas:e,valor_em_risco:D}}function A(o){let t=o.length,e=o.filter(a=>a.decisao==="PENDENTE"),r=new Map;for(let a of e)a.problemas.filter(c=>c.severidade==="bloqueia").forEach((c,d)=>{let m=r.get(c.tipo)||{quantidade:0,valor_em_risco:0};m.quantidade+=1,d===0&&(m.valor_em_risco+=a.valor_em_risco),r.set(c.tipo,m)});let s=new Map;for(let a of o){let i=s.get(a.convenio)||{total:0,pendentes:0,valor_em_risco:0};i.total+=1,a.decisao==="PENDENTE"&&(i.pendentes+=1,i.valor_em_risco+=a.valor_em_risco),s.set(a.convenio,i)}return{total:t,ok:t-e.length,pendentes:e.length,valor_em_risco_total:e.reduce((a,i)=>a+i.valor_em_risco,0),por_tipo:[...r.entries()].map(([a,i])=>({tipo:a,...i})).sort((a,i)=>i.quantidade-a.quantidade),por_convenio:[...s.entries()].map(([a,i])=>({convenio:a,...i})).sort((a,i)=>i.valor_em_risco-a.valor_em_risco)}}var h={PROCEDIMENTO_NAO_COBERTO:"regra",CAMPO_OBRIGATORIO_VAZIO:"regra",AUTORIZACAO_VENCIDA:"regra",SESSAO_ALEM_DO_LIMITE:"regra",LIMITE_DIVERGENTE:"regra",PRAZO_ENVIO_ESTOURADO:"regra",VALOR_DIVERGENTE:"regra",CONVENIO_DESCONHECIDO:"regra",PROCEDIMENTO_DESCONHECIDO:"regra",REGISTRO_INCONSISTENTE:"dicionario",RECLASSIFICAR_PARTICULAR:"observacao",CODIGO_ERRADO:"observacao",AUTORIZACAO_PENDENTE:"observacao",AUTORIZACAO_REMARCACAO:"observacao"},C=o=>h[o]??"regra";var z={versao:"agosto/2026",definicoes:{autorizacao_valida:"A autoriza\xE7\xE3o vale at\xE9 a data de validade, inclusive, comparada com a data do atendimento.",sessao_numero_na_autorizacao:"Posi\xE7\xE3o desta sess\xE3o dentro da autoriza\xE7\xE3o. N\xE3o pode passar do limite do conv\xEAnio.",prazo_envio_dias:"Dias, contados da data do atendimento, para a guia chegar ao conv\xEAnio. Depois disso o conv\xEAnio recusa.",valor:"Valor de refer\xEAncia do procedimento, em reais."},procedimentos:[{codigo:"50000470",descricao:"Sess\xE3o de fisioterapia musculoesquel\xE9tica",valor_referencia:62},{codigo:"50000560",descricao:"Sess\xE3o de fisioterapia neurofuncional",valor_referencia:70},{codigo:"50000012",descricao:"Reavalia\xE7\xE3o fisioterap\xEAutica",valor_referencia:55},{codigo:"20103301",descricao:"Consulta ortop\xE9dica",valor_referencia:90},{codigo:"40201015",descricao:"Infiltra\xE7\xE3o articular",valor_referencia:140}],convenios:[{nome:"Vitalcard",campos_obrigatorios:["numero_autorizacao","autorizacao_validade","profissional_registro","carteirinha","cid"],validade_maxima_autorizacao_dias:30,limite_sessoes_por_autorizacao:10,procedimentos_cobertos:["50000470","50000560","50000012","20103301"],prazo_envio_dias:30,observacao:"Reavalia\xE7\xE3o m\xE9dica obrigat\xF3ria a cada 10 sess\xF5es; nova autoriza\xE7\xE3o a cada reavalia\xE7\xE3o."},{nome:"Sa\xFAde Interior",campos_obrigatorios:["numero_autorizacao","autorizacao_validade","profissional_registro","carteirinha"],validade_maxima_autorizacao_dias:45,limite_sessoes_por_autorizacao:20,procedimentos_cobertos:["50000470","50000012","20103301","40201015"],prazo_envio_dias:45,observacao:"Aceita autoriza\xE7\xE3o verbal com protocolo por at\xE9 5 dias \xFAteis, desde que o n\xFAmero seja lan\xE7ado antes do envio."},{nome:"Plano Bem",campos_obrigatorios:["numero_autorizacao","autorizacao_validade","profissional_registro","carteirinha","cid"],validade_maxima_autorizacao_dias:60,limite_sessoes_por_autorizacao:12,procedimentos_cobertos:["50000470","50000560","50000012"],prazo_envio_dias:30,observacao:"N\xE3o cobre consulta m\xE9dica; consulta \xE9 faturada como particular."}]};window.VITALIS={verificarGuia:R,gerarRelatorio:A,origemDe:C,regras:z};})();
+<script>window.GUIAS = JSON.parse(document.getElementById("guias").textContent); window.BUILD_DATE = "23/09/2026";</script>
+<script>"use strict";(()=>{function u(o){let n=(o||"").trim();if(!n)return null;let t=(s,a,i)=>{let c=new Date(Date.UTC(s,a-1,i));return c.getUTCFullYear()===s&&c.getUTCMonth()===a-1&&c.getUTCDate()===i?c:null},e;return(e=n.match(/^(\d{4})-(\d{2})-(\d{2})$/))?t(+e[1],+e[2],+e[3]):(e=n.match(/^(\d{2})\/(\d{2})\/(\d{4})$/))?t(+e[3],+e[2],+e[1]):null}function V(o,n){return Math.round((n.getTime()-o.getTime())/864e5)}function E(o){let n=(o||"").trim().replace(/\./g,"").replace(",","."),t=(o||"").trim().replace(",","."),e=Number(t);return Number.isFinite(e)?e:null}function h(o){let n=(o||"").toLowerCase(),t={faturarParticular:!1,codigoErrado:null,autorizacaoPendente:!1,remarcada:!1};if(!n)return t;/faturar como particular|não quer usar o convênio|nao quer usar o convenio/.test(n)&&(t.faturarParticular=!0);let e=n.match(/procedimento (?:realizado )?foi ([^,.;]+)/);return e&&/c[oó]digo certo|c[oó]digo errado|lan[çc]ar o c[oó]digo/.test(n)&&(t.codigoErrado=e[1].trim()),/aguardando n[uú]mero|n[uú]mero ainda não lançado|numero ainda nao lancado|autorizado por telefone|autoriza[çc][ãa]o nova|autoriza[çc][ãa]o verbal|protocolo/.test(n)&&(t.autorizacaoPendente=!0),/remarcad|autoriza[çc][ãa]o era da data original/.test(n)&&(t.remarcada=!0),t}function R(o,n){let t=[],e=(r,$,x,M="bloqueia")=>t.push({tipo:r,motivo:$,corrigir:x,severidade:M}),s=n.procedimentos.find(r=>r.codigo===o.procedimento_codigo),a=n.convenios.find(r=>r.nome===o.convenio),i=h(o.observacao_recepcao),c=s?s.descricao:o.procedimento_descricao||o.procedimento_codigo;if(i.faturarParticular){e("RECLASSIFICAR_PARTICULAR","Recep\xE7\xE3o anotou que o paciente pediu para faturar como particular.","Retirar do lote de conv\xEAnio e faturar como particular; n\xE3o enviar esta guia ao conv\xEAnio.");let r=E(o.valor)??0;return{id_guia:o.id_guia,convenio:o.convenio,procedimento:c,decisao:"PENDENTE",problemas:t,valor_em_risco:r}}if(!a){e("CONVENIO_DESCONHECIDO",`Conv\xEAnio "${o.convenio}" n\xE3o est\xE1 nas regras.`,"Conferir o nome do conv\xEAnio na guia.");let r=E(o.valor)??0;return{id_guia:o.id_guia,convenio:o.convenio,procedimento:c,decisao:"PENDENTE",problemas:t,valor_em_risco:r}}if(i.codigoErrado&&e("CODIGO_ERRADO",`Recep\xE7\xE3o anotou que o procedimento foi "${i.codigoErrado}", diferente do lan\xE7ado (${c}).`,"Corrigir o c\xF3digo do procedimento para o que foi realmente realizado antes de enviar."),s||e("PROCEDIMENTO_DESCONHECIDO",`Procedimento ${o.procedimento_codigo} n\xE3o est\xE1 na tabela.`,"Conferir o c\xF3digo do procedimento."),s&&!a.procedimentos_cobertos.includes(o.procedimento_codigo)){let r=/consulta/i.test(s.descricao)&&/não cobre|nao cobre/i.test(a.observacao);e("PROCEDIMENTO_NAO_COBERTO",`${a.nome} n\xE3o cobre ${s.descricao}.`,r?"Faturar como particular (o conv\xEAnio n\xE3o cobre consulta).":"Conferir cobertura; provavelmente faturar como particular.")}let d=a.campos_obrigatorios.filter(r=>!(o[r]||"").trim()),l=d.indexOf("numero_autorizacao");if(l>=0&&i.autorizacaoPendente){d.splice(l,1);let r=/verbal|telefone|protocolo/i.test(a.observacao);e("AUTORIZACAO_PENDENTE","Autoriza\xE7\xE3o informada na observa\xE7\xE3o, mas o n\xFAmero ainda n\xE3o foi lan\xE7ado.",r?"Lan\xE7ar o n\xFAmero da autoriza\xE7\xE3o antes de enviar (o conv\xEAnio aceita verbal com protocolo por poucos dias).":"Lan\xE7ar o n\xFAmero da autoriza\xE7\xE3o antes de enviar.")}d.length&&e("CAMPO_OBRIGATORIO_VAZIO",`Falta(m) campo(s) que ${a.nome} exige: ${d.join(", ")}.`,`Preencher: ${d.join(", ")}.`);let T=r=>!!r&&r.getUTCFullYear()>=2e3&&r.getUTCFullYear()<=2030,m=u(o.data_atendimento),p=T(m);o.data_atendimento.trim()&&!m?e("DATA_INVALIDA",`A data de atendimento "${o.data_atendimento}" n\xE3o \xE9 uma data v\xE1lida.`,"Corrigir a data do atendimento antes de enviar."):m&&!p&&e("DATA_IMPLAUSIVEL",`A data de atendimento "${o.data_atendimento}" est\xE1 fora de um per\xEDodo plaus\xEDvel (2000\u20132030).`,"Conferir a data do atendimento \u2014 prov\xE1vel erro de digita\xE7\xE3o.");let O=u(o.autorizacao_validade);p&&O&&O.getTime()<m.getTime()&&(i.autorizacaoPendente?t.some(r=>r.tipo==="AUTORIZACAO_PENDENTE")||e("AUTORIZACAO_PENDENTE","Validade lan\xE7ada est\xE1 vencida, mas a observa\xE7\xE3o informa autoriza\xE7\xE3o nova aguardando lan\xE7amento.","Lan\xE7ar a nova autoriza\xE7\xE3o (n\xFAmero e validade) antes de enviar."):i.remarcada?e("AUTORIZACAO_REMARCACAO","Sess\xE3o remarcada; a autoriza\xE7\xE3o era da data original e pode n\xE3o cobrir a nova data.","Confirmar se a autoriza\xE7\xE3o vale para a data remarcada; renovar se preciso."):e("AUTORIZACAO_VENCIDA",`Autoriza\xE7\xE3o venceu em ${o.autorizacao_validade}, antes do atendimento em ${o.data_atendimento}.`,"Renovar a autoriza\xE7\xE3o antes de enviar."));let v=Number(o.sessao_numero_na_autorizacao);Number.isFinite(v)&&v>a.limite_sessoes_por_autorizacao&&e("SESSAO_ALEM_DO_LIMITE",`Sess\xE3o ${v} passa do limite de ${a.limite_sessoes_por_autorizacao} do ${a.nome}.`,"Emitir nova autoriza\xE7\xE3o (o limite por autoriza\xE7\xE3o foi atingido).");let f=Number(o.autorizacao_sessoes_limite);Number.isFinite(f)&&f!==a.limite_sessoes_por_autorizacao&&e("LIMITE_DIVERGENTE",`Limite lan\xE7ado (${f}) difere do limite do ${a.nome} (${a.limite_sessoes_por_autorizacao}).`,"Conferir o limite de sess\xF5es da autoriza\xE7\xE3o.","aviso");let b=u(o.data_lancamento);if(p&&m&&b){let r=V(m,b);r>a.prazo_envio_dias&&e("PRAZO_ENVIO_ESTOURADO",`${r} dias entre atendimento e lan\xE7amento; o ${a.nome} recusa ap\xF3s ${a.prazo_envio_dias}.`,"Enviar imediatamente; risco de recusa por prazo.")}let _=E(o.valor);s&&_!==null&&Math.abs(_-s.valor_referencia)>.001&&e("VALOR_DIVERGENTE",`Valor R$ ${_.toFixed(2)} difere da refer\xEAncia de ${s.descricao} (R$ ${s.valor_referencia.toFixed(2)}).`,`Ajustar o valor para R$ ${s.valor_referencia.toFixed(2)}.`,"aviso");let g=(o.profissional_registro||"").toUpperCase(),N=o.procedimento_codigo.startsWith("5"),D=o.procedimento_codigo==="20103301"||o.procedimento_codigo==="40201015";g&&(N&&!g.includes("CREFITO")&&e("REGISTRO_INCONSISTENTE",`Procedimento de fisioterapia com registro ${o.profissional_registro} (esperado CREFITO).`,"Conferir o profissional/registro lan\xE7ado."),D&&!g.includes("CRM")&&e("REGISTRO_INCONSISTENTE",`Procedimento m\xE9dico com registro ${o.profissional_registro} (esperado CRM).`,"Conferir o profissional/registro lan\xE7ado."));let A=t.some(r=>r.severidade==="bloqueia"),P=A?"PENDENTE":"OK",S=A?_??0:0;return{id_guia:o.id_guia,convenio:o.convenio,procedimento:c,decisao:P,problemas:t,valor_em_risco:S}}function C(o){let n=o.length,t=o.filter(a=>a.decisao==="PENDENTE"),e=new Map;for(let a of t)a.problemas.filter(c=>c.severidade==="bloqueia").forEach((c,d)=>{let l=e.get(c.tipo)||{quantidade:0,valor_em_risco:0};l.quantidade+=1,d===0&&(l.valor_em_risco+=a.valor_em_risco),e.set(c.tipo,l)});let s=new Map;for(let a of o){let i=s.get(a.convenio)||{total:0,pendentes:0,valor_em_risco:0};i.total+=1,a.decisao==="PENDENTE"&&(i.pendentes+=1,i.valor_em_risco+=a.valor_em_risco),s.set(a.convenio,i)}return{total:n,ok:n-t.length,pendentes:t.length,valor_em_risco_total:t.reduce((a,i)=>a+i.valor_em_risco,0),por_tipo:[...e.entries()].map(([a,i])=>({tipo:a,...i})).sort((a,i)=>i.quantidade-a.quantidade),por_convenio:[...s.entries()].map(([a,i])=>({convenio:a,...i})).sort((a,i)=>i.valor_em_risco-a.valor_em_risco)}}var L={PROCEDIMENTO_NAO_COBERTO:"regra",CAMPO_OBRIGATORIO_VAZIO:"regra",AUTORIZACAO_VENCIDA:"regra",SESSAO_ALEM_DO_LIMITE:"regra",LIMITE_DIVERGENTE:"regra",PRAZO_ENVIO_ESTOURADO:"regra",VALOR_DIVERGENTE:"regra",CONVENIO_DESCONHECIDO:"regra",PROCEDIMENTO_DESCONHECIDO:"regra",REGISTRO_INCONSISTENTE:"dicionario",RECLASSIFICAR_PARTICULAR:"observacao",CODIGO_ERRADO:"observacao",AUTORIZACAO_PENDENTE:"observacao",AUTORIZACAO_REMARCACAO:"observacao"},I=o=>L[o]??"regra";var z={versao:"agosto/2026",definicoes:{autorizacao_valida:"A autoriza\xE7\xE3o vale at\xE9 a data de validade, inclusive, comparada com a data do atendimento.",sessao_numero_na_autorizacao:"Posi\xE7\xE3o desta sess\xE3o dentro da autoriza\xE7\xE3o. N\xE3o pode passar do limite do conv\xEAnio.",prazo_envio_dias:"Dias, contados da data do atendimento, para a guia chegar ao conv\xEAnio. Depois disso o conv\xEAnio recusa.",valor:"Valor de refer\xEAncia do procedimento, em reais."},procedimentos:[{codigo:"50000470",descricao:"Sess\xE3o de fisioterapia musculoesquel\xE9tica",valor_referencia:62},{codigo:"50000560",descricao:"Sess\xE3o de fisioterapia neurofuncional",valor_referencia:70},{codigo:"50000012",descricao:"Reavalia\xE7\xE3o fisioterap\xEAutica",valor_referencia:55},{codigo:"20103301",descricao:"Consulta ortop\xE9dica",valor_referencia:90},{codigo:"40201015",descricao:"Infiltra\xE7\xE3o articular",valor_referencia:140}],convenios:[{nome:"Vitalcard",campos_obrigatorios:["numero_autorizacao","autorizacao_validade","profissional_registro","carteirinha","cid"],validade_maxima_autorizacao_dias:30,limite_sessoes_por_autorizacao:10,procedimentos_cobertos:["50000470","50000560","50000012","20103301"],prazo_envio_dias:30,observacao:"Reavalia\xE7\xE3o m\xE9dica obrigat\xF3ria a cada 10 sess\xF5es; nova autoriza\xE7\xE3o a cada reavalia\xE7\xE3o."},{nome:"Sa\xFAde Interior",campos_obrigatorios:["numero_autorizacao","autorizacao_validade","profissional_registro","carteirinha"],validade_maxima_autorizacao_dias:45,limite_sessoes_por_autorizacao:20,procedimentos_cobertos:["50000470","50000012","20103301","40201015"],prazo_envio_dias:45,observacao:"Aceita autoriza\xE7\xE3o verbal com protocolo por at\xE9 5 dias \xFAteis, desde que o n\xFAmero seja lan\xE7ado antes do envio."},{nome:"Plano Bem",campos_obrigatorios:["numero_autorizacao","autorizacao_validade","profissional_registro","carteirinha","cid"],validade_maxima_autorizacao_dias:60,limite_sessoes_por_autorizacao:12,procedimentos_cobertos:["50000470","50000560","50000012"],prazo_envio_dias:30,observacao:"N\xE3o cobre consulta m\xE9dica; consulta \xE9 faturada como particular."}]};window.VITALIS={verificarGuia:R,gerarRelatorio:C,origemDe:I,normalizarData:u,regras:z};})();
 </script>
-<script>/* ui.js — interface do navegador. Usa window.VITALIS (o motor) e window.GUIAS
-   (as 80 guias embutidas). Não decide nada: só chama verificarGuia e mostra. */
+<script>/* ui.js — dashboard. Usa window.VITALIS (o motor) e window.GUIAS (dados iniciais).
+   Nada de regra aqui: so chama verificarGuia e monta a tela. */
 (function () {
   var V = window.VITALIS;
-  var guias = window.GUIAS || [];
   var brl = function (n) { return "R$ " + Number(n).toFixed(2).replace(".", ","); };
   var tag = { regra: "regra", observacao: "obs", dicionario: "dic" };
 
-  // roda o motor no lote inteiro (ao vivo, no navegador)
-  var resultados = guias.map(function (g) { return V.verificarGuia(g, V.regras); });
-  var rel = V.gerarRelatorio(resultados);
+  var dataset = (window.GUIAS || []).slice();
+  var filtroStatus = "TODAS";
+  var busca = "";
+  var de = "", ate = "";
 
-  // ---- placar ----
-  document.getElementById("placar").innerHTML =
-    kpi(rel.total, "guias verificadas") +
-    kpi(rel.ok, "OK") +
-    kpi(rel.pendentes, "pendentes") +
-    kpi(brl(rel.valor_em_risco_total), "em risco (amostra ago.)");
+  var iso = function (s) { var d = V.normalizarData(s); return d ? d.toISOString().slice(0, 10) : ""; };
 
-  function kpi(v, l) { return '<div class="kpi"><div class="v">' + v + '</div><div class="l">' + l + "</div></div>"; }
+  function periodo() {
+    var ds = dataset.map(function (g) { return iso(g.data_atendimento); }).filter(Boolean).sort();
+    return ds.length ? { min: ds[0], max: ds[ds.length - 1] } : { min: "", max: "" };
+  }
 
-  // ---- por tipo ----
-  document.getElementById("por-tipo").innerHTML = rel.por_tipo.map(function (t) {
-    return "<tr><td>" + t.tipo + "</td><td class=num>" + t.quantidade + "</td><td class=num>" + brl(t.valor_em_risco) + "</td></tr>";
-  }).join("");
+  function calcular() {
+    return dataset
+      .filter(function (g) {
+        var d = iso(g.data_atendimento);
+        if (de && d && d < de) return false;
+        if (ate && d && d > ate) return false;
+        return true;
+      })
+      .map(function (g) { return { g: g, r: V.verificarGuia(g, V.regras) }; });
+  }
 
-  // ---- por convênio ----
-  document.getElementById("por-convenio").innerHTML = rel.por_convenio.map(function (c) {
-    return "<tr><td>" + c.convenio + "</td><td class=num>" + c.pendentes + "/" + c.total + "</td><td class=num>" + brl(c.valor_em_risco) + "</td></tr>";
-  }).join("");
-
-  // ---- tabela das 80 ----
   function motivos(r) {
     var b = r.problemas.filter(function (p) { return p.severidade === "bloqueia"; });
     if (!b.length) return "—";
-    return b.map(function (p) { return "<span class=chip>[" + tag[V.origemDe(p.tipo)] + "] " + p.tipo + "</span>"; }).join(" ");
+    return b.map(function (p) { return '<span class="chip">[' + tag[V.origemDe(p.tipo)] + "] " + p.tipo + "</span>"; }).join(" ");
   }
-  document.getElementById("linhas").innerHTML = resultados.map(function (r, i) {
-    var g = guias[i];
-    var cls = r.decisao === "OK" ? "ok" : "pend";
-    return '<tr data-dec="' + r.decisao + '"><td>' + g.id_guia + "</td><td>" + g.convenio + "</td><td>" + r.procedimento +
-      "</td><td>" + g.data_atendimento + "</td><td class=num>" + brl(parseFloat((g.valor || "0").replace(",", "."))) +
-      '</td><td><span class="badge ' + cls + '">' + r.decisao + "</span></td><td>" + motivos(r) + "</td></tr>";
-  }).join("");
 
-  // ---- filtro da tabela ----
-  window.filtrar = function (dec, btn) {
-    var linhas = document.querySelectorAll("#linhas tr");
-    for (var i = 0; i < linhas.length; i++) {
-      linhas[i].style.display = dec === "TODAS" || linhas[i].getAttribute("data-dec") === dec ? "" : "none";
-    }
-    var botoes = document.querySelectorAll(".filtro button");
-    for (var j = 0; j < botoes.length; j++) botoes[j].classList.remove("ativo");
-    btn.classList.add("ativo");
+  function render() {
+    var itens = calcular();
+    var rel = V.gerarRelatorio(itens.map(function (x) { return x.r; }));
+
+    document.getElementById("k-tot").textContent = rel.total;
+    document.getElementById("k-ok").textContent = rel.ok;
+    document.getElementById("k-pend").textContent = rel.pendentes;
+    document.getElementById("k-risco").textContent = brl(rel.valor_em_risco_total);
+    var bn = document.getElementById("nav-pend-badge");
+    bn.textContent = rel.pendentes; bn.style.display = rel.pendentes ? "" : "none";
+
+    var maxTipo = Math.max.apply(null, rel.por_tipo.map(function (t) { return t.valor_em_risco; }).concat([1]));
+    document.getElementById("por-tipo").innerHTML = rel.por_tipo.map(function (t) {
+      return "<tr><td>" + t.tipo + '<div class="bar" style="width:' + Math.round((t.valor_em_risco / maxTipo) * 100) +
+        '%"></div></td><td class="num">' + t.quantidade + '</td><td class="num risco-val">' + brl(t.valor_em_risco) + "</td></tr>";
+    }).join("") || '<tr><td colspan="3">Sem pendencias no periodo.</td></tr>';
+
+    document.getElementById("por-convenio").innerHTML = rel.por_convenio.map(function (c) {
+      return "<tr><td>" + c.convenio + '</td><td class="num">' + c.pendentes + "/" + c.total +
+        '</td><td class="num risco-val">' + brl(c.valor_em_risco) + "</td></tr>";
+    }).join("");
+
+    var q = busca.toLowerCase();
+    var linhas = itens.filter(function (x) {
+      if (filtroStatus !== "TODAS" && x.r.decisao !== filtroStatus) return false;
+      if (q) { var alvo = (x.g.id_guia + " " + x.g.convenio + " " + x.r.procedimento).toLowerCase(); if (alvo.indexOf(q) < 0) return false; }
+      return true;
+    });
+    document.getElementById("guias-count").textContent = linhas.length;
+    document.getElementById("linhas").innerHTML = linhas.map(function (x) {
+      var cls = x.r.decisao === "OK" ? "ok" : "pend";
+      return "<tr><td>" + x.g.id_guia + "</td><td>" + x.g.convenio + "</td><td>" + x.r.procedimento +
+        "</td><td>" + x.g.data_atendimento + '</td><td class="num">' + brl(parseFloat((x.g.valor || "0").replace(",", "."))) +
+        '</td><td><span class="badge ' + cls + '">' + x.r.decisao + "</span></td><td>" + motivos(x.r) + "</td></tr>";
+    }).join("") || '<tr><td colspan="7">Nenhuma guia com esses filtros.</td></tr>';
+
+    var p = periodo();
+    document.getElementById("periodo").textContent = p.min ? (p.min.split("-").reverse().join("/") + " a " + p.max.split("-").reverse().join("/")) : "—";
+  }
+
+  window.irPara = function (sec, statusOpcional) {
+    document.querySelectorAll(".sec").forEach(function (s) { s.classList.remove("on"); });
+    document.getElementById("sec-" + sec).classList.add("on");
+    document.querySelectorAll(".nav button").forEach(function (b) { b.classList.toggle("ativo", b.getAttribute("data-sec") === sec); });
+    if (statusOpcional) { filtroStatus = statusOpcional; sincronizarPills(); render(); }
   };
 
-  // ---- formulário: conferir uma guia nova ao vivo ----
-  var sel = document.getElementById("f_procedimento_codigo");
-  V.regras.procedimentos.forEach(function (p) {
-    var o = document.createElement("option");
-    o.value = p.codigo; o.textContent = p.codigo + " — " + p.descricao; sel.appendChild(o);
-  });
+  function sincronizarPills() {
+    document.querySelectorAll("#pills-status .pill").forEach(function (b) { b.classList.toggle("ativo", b.getAttribute("data-st") === filtroStatus); });
+  }
 
-  var campos = ["convenio", "procedimento_codigo", "data_atendimento", "carteirinha", "cid",
-    "numero_autorizacao", "autorizacao_validade", "autorizacao_sessoes_limite",
-    "sessao_numero_na_autorizacao", "profissional_registro", "valor", "data_lancamento", "observacao_recepcao"];
+  document.getElementById("k-card-tot").onclick = function () { window.irPara("guias", "TODAS"); };
+  document.getElementById("k-card-ok").onclick = function () { window.irPara("guias", "OK"); };
+  document.getElementById("k-card-pend").onclick = function () { window.irPara("guias", "PENDENTE"); };
+  document.getElementById("k-card-risco").onclick = function () { window.irPara("pendencias"); };
+
+  document.querySelectorAll("#pills-status .pill").forEach(function (b) {
+    b.onclick = function () { filtroStatus = b.getAttribute("data-st"); sincronizarPills(); render(); };
+  });
+  document.getElementById("f-busca").oninput = function (e) { busca = e.target.value; render(); };
+  document.getElementById("f-de").onchange = function (e) { de = e.target.value; render(); };
+  document.getElementById("f-ate").onchange = function (e) { ate = e.target.value; render(); };
+
+  window.modo = function (m) {
+    document.querySelectorAll(".modo").forEach(function (x) { x.classList.remove("on"); });
+    document.getElementById("modo-" + m).classList.add("on");
+    document.querySelectorAll(".modos button").forEach(function (b) { b.classList.toggle("ativo", b.getAttribute("data-modo") === m); });
+  };
+
+  var campos = ["convenio", "procedimento_codigo", "data_atendimento", "data_lancamento", "carteirinha", "cid",
+    "numero_autorizacao", "autorizacao_validade", "autorizacao_sessoes_limite", "sessao_numero_na_autorizacao",
+    "profissional_registro", "valor", "observacao_recepcao"];
+
+  var selProc = document.getElementById("f_procedimento_codigo");
+  V.regras.procedimentos.forEach(function (p) { var o = document.createElement("option"); o.value = p.codigo; o.textContent = p.codigo + " - " + p.descricao; selProc.appendChild(o); });
+
+  function mostrarResultado(r, alvo) {
+    var cls = r.decisao === "OK" ? "ok" : "pend";
+    var html = '<div class="res ' + cls + '"><b><span class="badge ' + cls + '">' + r.decisao + "</span> " + (r.procedimento || "") + "</b> - " + brl(r.valor_em_risco) + " em risco";
+    if (!r.problemas.length) html += "<p>Guia pronta para envio.</p>";
+    else html += "<ul>" + r.problemas.map(function (p) { return "<li><b>" + p.tipo + "</b> [" + tag[V.origemDe(p.tipo)] + "] - " + p.motivo + "<br><i>Corrigir:</i> " + p.corrigir + "</li>"; }).join("") + "</ul>";
+    html += "</div>";
+    document.getElementById(alvo).innerHTML = html;
+  }
 
   window.conferir = function () {
-    var g = {};
-    campos.forEach(function (c) { g[c] = (document.getElementById("f_" + c).value || "").trim(); });
-    var r = V.verificarGuia(g, V.regras);
-    var cls = r.decisao === "OK" ? "ok" : "pend";
-    var html = '<div class="res ' + cls + '"><div class="res-top"><span class="badge ' + cls + '">' + r.decisao +
-      "</span> <b>" + (r.procedimento || "") + "</b> · " + brl(r.valor_em_risco) + " em risco</div>";
-    if (!r.problemas.length) html += "<p>Guia pronta para envio.</p>";
-    else html += "<ul>" + r.problemas.map(function (p) {
-      return "<li><b>" + p.tipo + "</b> [" + tag[V.origemDe(p.tipo)] + "] — " + p.motivo + "<br><i>Corrigir:</i> " + p.corrigir + "</li>";
-    }).join("") + "</ul>";
-    html += "</div>";
-    document.getElementById("resultado").innerHTML = html;
+    var g = {}; campos.forEach(function (c) { g[c] = (document.getElementById("f_" + c).value || "").trim(); });
+    mostrarResultado(V.verificarGuia(g, V.regras), "res-manual");
   };
-
   window.exemplo = function () {
-    var ex = {
-      convenio: "Vitalcard", procedimento_codigo: "20103301", data_atendimento: "2026-08-12",
+    var ex = { convenio: "Vitalcard", procedimento_codigo: "20103301", data_atendimento: "2026-08-12", data_lancamento: "2026-08-14",
       carteirinha: "445566", cid: "M25.5", numero_autorizacao: "AUT909", autorizacao_validade: "2026-09-05",
-      autorizacao_sessoes_limite: "10", sessao_numero_na_autorizacao: "2", profissional_registro: "CRM-SP 55010",
-      valor: "90.00", data_lancamento: "2026-08-14",
-      observacao_recepcao: "Procedimento realizado foi drenagem linfática, lançar o código certo.",
-    };
+      autorizacao_sessoes_limite: "10", sessao_numero_na_autorizacao: "2", profissional_registro: "CRM-SP 55010", valor: "90.00",
+      observacao_recepcao: "Procedimento realizado foi drenagem linfatica, lancar o codigo certo." };
     campos.forEach(function (c) { document.getElementById("f_" + c).value = ex[c] || ""; });
     window.conferir();
   };
+
+  function parseCSV(txt) {
+    var rows = [], field = "", row = [], q = false;
+    for (var i = 0; i < txt.length; i++) { var c = txt[i];
+      if (q) { if (c === '"') { if (txt[i + 1] === '"') { field += '"'; i++; } else q = false; } else field += c; }
+      else { if (c === '"') q = true; else if (c === ",") { row.push(field); field = ""; } else if (c === "\n") { row.push(field); rows.push(row); row = []; field = ""; } else if (c === "\r") {} else field += c; } }
+    if (field !== "" || row.length) { row.push(field); rows.push(row); }
+    return rows;
+  }
+  window.carregarCSV = function (input) {
+    var f = input.files && input.files[0]; if (!f) return;
+    var fr = new FileReader();
+    fr.onload = function () {
+      try {
+        var linhas = parseCSV(String(fr.result));
+        var head = linhas[0].map(function (h) { return h.trim(); });
+        var novas = linhas.slice(1).filter(function (l) { return l.length > 1; }).map(function (l) { var o = {}; head.forEach(function (h, i) { o[h] = (l[i] || "").trim(); }); return o; });
+        if (!novas.length || head.indexOf("convenio") < 0) throw new Error("CSV sem as colunas esperadas (ex.: convenio, procedimento_codigo).");
+        dataset = novas; de = ""; ate = ""; filtroStatus = "TODAS"; sincronizarPills();
+        document.getElementById("upload-msg").textContent = novas.length + " guias carregadas. Dashboard atualizado.";
+        render(); window.irPara("visao");
+      } catch (e) { document.getElementById("upload-msg").textContent = "Erro ao ler o CSV: " + e.message; }
+    };
+    fr.readAsText(f);
+  };
+
+  var p0 = periodo(); de = p0.min; ate = p0.max;
+  document.getElementById("f-de").value = de; document.getElementById("f-ate").value = ate;
+  document.getElementById("atualizado").textContent = window.BUILD_DATE || "";
+  sincronizarPills();
+  render();
 })();
 </script>
-</body>
-</html>
+</body></html>

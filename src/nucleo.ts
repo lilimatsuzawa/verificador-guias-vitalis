@@ -83,13 +83,14 @@ export interface Resultado {
 export function normalizarData(s: string): Date | null {
   const v = (s || "").trim();
   if (!v) return null;
+  // monta a data e confirma que dia/mês existem de verdade (rejeita 32/13/2026)
+  const montar = (ano: number, mes: number, dia: number): Date | null => {
+    const d = new Date(Date.UTC(ano, mes - 1, dia));
+    return d.getUTCFullYear() === ano && d.getUTCMonth() === mes - 1 && d.getUTCDate() === dia ? d : null;
+  };
   let m: RegExpMatchArray | null;
-  if ((m = v.match(/^(\d{4})-(\d{2})-(\d{2})$/))) {
-    return new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
-  }
-  if ((m = v.match(/^(\d{2})\/(\d{2})\/(\d{4})$/))) {
-    return new Date(Date.UTC(+m[3], +m[2] - 1, +m[1])); // dd/mm/aaaa
-  }
+  if ((m = v.match(/^(\d{4})-(\d{2})-(\d{2})$/))) return montar(+m[1], +m[2], +m[3]);
+  if ((m = v.match(/^(\d{2})\/(\d{2})\/(\d{4})$/))) return montar(+m[3], +m[2], +m[1]); // dd/mm/aaaa
   return null; // formato desconhecido -> tratado como não verificável
 }
 
@@ -219,10 +220,19 @@ export function verificarGuia(g: GuiaCrua, regras: Regras): Resultado {
     );
   }
 
-  // --- 3. Autorização válida na data do atendimento ---
+  // --- Datas plausíveis? (não aceitar 03/03/3003 sem reclamar) ---
+  const anoPlausivel = (d: Date | null) => !!d && d.getUTCFullYear() >= 2000 && d.getUTCFullYear() <= 2030;
   const dAtend = normalizarData(g.data_atendimento);
+  const atendPlausivel = anoPlausivel(dAtend);
+  if (g.data_atendimento.trim() && !dAtend) {
+    add("DATA_INVALIDA", `A data de atendimento "${g.data_atendimento}" não é uma data válida.`, "Corrigir a data do atendimento antes de enviar.");
+  } else if (dAtend && !atendPlausivel) {
+    add("DATA_IMPLAUSIVEL", `A data de atendimento "${g.data_atendimento}" está fora de um período plausível (2000–2030).`, "Conferir a data do atendimento — provável erro de digitação.");
+  }
+
+  // --- 3. Autorização válida na data do atendimento ---
   const dVal = normalizarData(g.autorizacao_validade);
-  if (dAtend && dVal && dVal.getTime() < dAtend.getTime()) {
+  if (atendPlausivel && dVal && dVal.getTime() < dAtend!.getTime()) {
     if (sig.autorizacaoPendente) {
       // nota informa autorização nova -> pendência branda, não rejeição
       if (!problemas.some((p) => p.tipo === "AUTORIZACAO_PENDENTE"))
@@ -268,7 +278,7 @@ export function verificarGuia(g: GuiaCrua, regras: Regras): Resultado {
 
   // --- 5. Prazo de envio (conta da data do atendimento; conferência na data de lançamento) ---
   const dLanc = normalizarData(g.data_lancamento);
-  if (dAtend && dLanc) {
+  if (atendPlausivel && dAtend && dLanc) {
     const dias = diasEntre(dAtend, dLanc);
     if (dias > conv.prazo_envio_dias) {
       add(

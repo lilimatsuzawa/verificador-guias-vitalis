@@ -84,6 +84,25 @@ describe("Normalização de dados (a armadilha de qualidade)", () => {
   });
 });
 
+describe("Validação de datas implausíveis (guia digitada errado)", () => {
+  const base = {
+    convenio: "Vitalcard", procedimento_codigo: "50000470", carteirinha: "1", cid: "M79.7",
+    numero_autorizacao: "AUT1", autorizacao_validade: "2026-09-10", autorizacao_sessoes_limite: "10",
+    sessao_numero_na_autorizacao: "3", profissional_registro: "CREFITO-3 1-F", valor: "62.00",
+    data_lancamento: "2026-08-22", observacao_recepcao: "",
+  };
+  test("ano absurdo (3003) vira PENDENTE por DATA_IMPLAUSIVEL, não por vencida", () => {
+    const r = verificarGuia({ ...base, data_atendimento: "3003-08-20" } as any, regras);
+    assert.equal(r.decisao, "PENDENTE");
+    assert.ok(r.problemas.some((p) => p.tipo === "DATA_IMPLAUSIVEL"));
+    assert.ok(!r.problemas.some((p) => p.tipo === "AUTORIZACAO_VENCIDA"));
+  });
+  test("data que não parseia vira DATA_INVALIDA", () => {
+    const r = verificarGuia({ ...base, data_atendimento: "32/13/2026" } as any, regras);
+    assert.ok(r.problemas.some((p) => p.tipo === "DATA_INVALIDA"));
+  });
+});
+
 describe("Relatório do lote (golden — trava as 80 de uma vez)", () => {
   test("80 guias · 46 OK · 34 pendentes · R$ 2.482 em risco", () => {
     const rel = gerarRelatorio(guias.map((g) => verificarGuia(g, regras)));

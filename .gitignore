@@ -1,0 +1,13 @@
+# Dependências e build
+node_modules/
+dist/
+
+# Segredos — NUNCA no repo público (regra do enunciado)
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+
+.DS_Store
+npm-debug.log*

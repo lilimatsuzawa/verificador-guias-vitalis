@@ -1,0 +1,14 @@
+{
+  "name": "verificador-guias-vitalis",
+  "version": "0.1.0",
+  "description": "Confere guias de convênio da Clínica Vitalis antes do envio (prova Expert Integrado).",
+  "type": "module",
+  "scripts": {
+    "rodar": "tsx src/rodar.ts",
+    "tabela": "tsx src/tabela.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0",
+    "typescript": "^5.6.0"
+  }
+}

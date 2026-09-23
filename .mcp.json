@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "vitalis-guias": {
+      "command": "npx",
+      "args": ["tsx", "src/mcp/servidor.ts"]
+    }
+  }
+}

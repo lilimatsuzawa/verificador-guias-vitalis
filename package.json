@@ -9,7 +9,8 @@
     "site": "tsx scripts/gerar-site.ts",
     "mcp": "tsx src/mcp/servidor.ts",
     "mcp:teste": "tsx src/mcp/teste-cliente.ts",
-    "inspector": "npx @modelcontextprotocol/inspector npx tsx src/mcp/servidor.ts"
+    "inspector": "npx @modelcontextprotocol/inspector npx tsx src/mcp/servidor.ts",
+    "test": "node --import tsx --test src/nucleo.test.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",

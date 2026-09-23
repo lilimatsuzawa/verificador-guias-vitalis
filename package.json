@@ -5,7 +5,14 @@
   "type": "module",
   "scripts": {
     "rodar": "tsx src/rodar.ts",
-    "tabela": "tsx src/tabela.ts"
+    "tabela": "tsx src/tabela.ts",
+    "mcp": "tsx src/mcp/servidor.ts",
+    "mcp:teste": "tsx src/mcp/teste-cliente.ts",
+    "inspector": "npx @modelcontextprotocol/inspector npx tsx src/mcp/servidor.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "tsx": "^4.21.0",

@@ -55,14 +55,14 @@
       var g = Math.round(60 - ratio * 40);
       var b2 = Math.round(60 - ratio * 40);
       var cor = "rgb(" + r + "," + g + "," + b2 + ")";
-      return "<tr><td>" + t.tipo + '<div class="bar" style="width:' + Math.round(ratio * 100) +
-        "%;background:" + cor + '"></div></td><td class="num">' + t.quantidade + '</td><td class="num risco-val">' + brl(t.valor_em_risco) + "</td></tr>";
+      return '<tr><td data-label="Tipo">' + t.tipo + '<div class="bar" style="width:' + Math.round(ratio * 100) +
+        "%;background:" + cor + '"></div></td><td data-label="Guias" class="num">' + t.quantidade + '</td><td data-label="Em risco" class="num risco-val">' + brl(t.valor_em_risco) + "</td></tr>";
     }).join("") || '<tr><td colspan="3">Sem pendencias no periodo.</td></tr>';
 
     rel.por_convenio.sort(function (a, b) { return b.valor_em_risco - a.valor_em_risco; });
     document.getElementById("por-convenio").innerHTML = rel.por_convenio.map(function (c) {
-      return "<tr><td>" + c.convenio + '</td><td class="num">' + c.pendentes + "/" + c.total +
-        '</td><td class="num risco-val">' + brl(c.valor_em_risco) + "</td></tr>";
+      return '<tr><td data-label="Convênio">' + c.convenio + '</td><td data-label="Pend." class="num">' + c.pendentes + "/" + c.total +
+        '</td><td data-label="Em risco" class="num risco-val">' + brl(c.valor_em_risco) + "</td></tr>";
     }).join("");
 
     var q = busca.toLowerCase();
@@ -78,9 +78,9 @@
     document.getElementById("guias-count").textContent = linhas.length;
     document.getElementById("linhas").innerHTML = linhas.map(function (x) {
       var cls = x.r.decisao === "OK" ? "ok" : "pend";
-      return "<tr><td>" + x.g.id_guia + "</td><td>" + x.g.convenio + "</td><td>" + x.r.procedimento +
-        "</td><td>" + x.g.data_atendimento + '</td><td class="num">' + brl(parseFloat((x.g.valor || "0").replace(",", "."))) +
-        '</td><td><span class="badge ' + cls + '">' + x.r.decisao + "</span></td><td>" + motivos(x.r) + "</td></tr>";
+      return '<tr><td data-label="Guia">' + x.g.id_guia + '</td><td data-label="Convênio">' + x.g.convenio + '</td><td data-label="Procedimento">' + x.r.procedimento +
+        '</td><td data-label="Atend.">' + x.g.data_atendimento + '</td><td data-label="Valor" class="num">' + brl(parseFloat((x.g.valor || "0").replace(",", "."))) +
+        '</td><td data-label="Decisão"><span class="badge ' + cls + '">' + x.r.decisao + '</span></td><td data-label="Motivos">' + motivos(x.r) + "</td></tr>";
     }).join("") || '<tr><td colspan="7">Nenhuma guia com esses filtros.</td></tr>';
 
     var p = periodo();
@@ -114,9 +114,9 @@
     document.getElementById("visao-detalhe-titulo").textContent = titulos[filtro] + " (" + linhas.length + ")";
     document.getElementById("visao-linhas").innerHTML = linhas.map(function (x) {
       var cls = x.r.decisao === "OK" ? "ok" : "pend";
-      return "<tr><td>" + x.g.id_guia + "</td><td>" + x.g.convenio + "</td><td>" + x.r.procedimento +
-        "</td><td>" + x.g.data_atendimento + '</td><td class="num">' + brl(parseFloat((x.g.valor || "0").replace(",", "."))) +
-        '</td><td><span class="badge ' + cls + '">' + x.r.decisao + "</span></td><td>" + motivos(x.r) + "</td></tr>";
+      return '<tr><td data-label="Guia">' + x.g.id_guia + '</td><td data-label="Convênio">' + x.g.convenio + '</td><td data-label="Procedimento">' + x.r.procedimento +
+        '</td><td data-label="Atend.">' + x.g.data_atendimento + '</td><td data-label="Valor" class="num">' + brl(parseFloat((x.g.valor || "0").replace(",", "."))) +
+        '</td><td data-label="Decisão"><span class="badge ' + cls + '">' + x.r.decisao + '</span></td><td data-label="Motivos">' + motivos(x.r) + "</td></tr>";
     }).join("") || '<tr><td colspan="7">Nenhuma guia.</td></tr>';
   }
 

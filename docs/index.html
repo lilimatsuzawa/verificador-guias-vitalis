@@ -127,13 +127,31 @@ footer{color:var(--suave);font-size:12px;margin-top:28px;padding-top:16px;border
   .app{flex-direction:column}
   .side{width:auto;border-bottom:1px solid rgba(255,255,255,.1);padding:14px;background:linear-gradient(90deg,#1e3a5f,#2563eb);position:static;height:auto;overflow:visible}
   .brand{padding:4px 8px 12px;font-size:15px}
-  .nav{display:flex;gap:5px;overflow-x:auto}
+  .nav{display:flex;gap:5px;overflow-x:auto;padding-bottom:4px}
   .nav button{white-space:nowrap;margin-bottom:0;padding:10px 12px}
   .kpis,.kpis-3{grid-template-columns:1fr 1fr}
   .kpi .v{font-size:26px}
+  .kpi{padding:16px 18px}
   .duas{grid-template-columns:1fr}
-  .grade{grid-template-columns:1fr 1fr}
-  .main{padding:18px}
+  .grade{grid-template-columns:1fr}
+  .main{padding:14px}
+  .card{padding:14px 10px;border-radius:10px}
+  .filtros{flex-direction:column;gap:8px}
+  .filtros .grupo{flex-wrap:wrap}
+  .busca{min-width:100%}
+
+  /* tabelas viram cards empilhados no celular */
+  table,thead,tbody,th,td,tr{display:block}
+  thead{position:absolute;left:-9999px}
+  tr{background:var(--branco);border:1px solid var(--linha);border-radius:10px;margin-bottom:10px;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+  tr:hover{background:var(--azul-claro)}
+  td{padding:5px 0;border-bottom:none;display:flex;justify-content:space-between;align-items:center;font-size:13px}
+  td::before{content:attr(data-label);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--suave);margin-right:12px;flex-shrink:0}
+  td:last-child{border-bottom:none}
+  .num{text-align:left}
+  .topo h1{font-size:18px}
+  .topo{flex-direction:column;align-items:flex-start;gap:4px}
+  .topo .meta{text-align:left}
 }
 </style>
 </head><body>
@@ -360,14 +378,14 @@ footer{color:var(--suave);font-size:12px;margin-top:28px;padding-top:16px;border
       var g = Math.round(60 - ratio * 40);
       var b2 = Math.round(60 - ratio * 40);
       var cor = "rgb(" + r + "," + g + "," + b2 + ")";
-      return "<tr><td>" + t.tipo + '<div class="bar" style="width:' + Math.round(ratio * 100) +
-        "%;background:" + cor + '"></div></td><td class="num">' + t.quantidade + '</td><td class="num risco-val">' + brl(t.valor_em_risco) + "</td></tr>";
+      return '<tr><td data-label="Tipo">' + t.tipo + '<div class="bar" style="width:' + Math.round(ratio * 100) +
+        "%;background:" + cor + '"></div></td><td data-label="Guias" class="num">' + t.quantidade + '</td><td data-label="Em risco" class="num risco-val">' + brl(t.valor_em_risco) + "</td></tr>";
     }).join("") || '<tr><td colspan="3">Sem pendencias no periodo.</td></tr>';
 
     rel.por_convenio.sort(function (a, b) { return b.valor_em_risco - a.valor_em_risco; });
     document.getElementById("por-convenio").innerHTML = rel.por_convenio.map(function (c) {
-      return "<tr><td>" + c.convenio + '</td><td class="num">' + c.pendentes + "/" + c.total +
-        '</td><td class="num risco-val">' + brl(c.valor_em_risco) + "</td></tr>";
+      return '<tr><td data-label="Convênio">' + c.convenio + '</td><td data-label="Pend." class="num">' + c.pendentes + "/" + c.total +
+        '</td><td data-label="Em risco" class="num risco-val">' + brl(c.valor_em_risco) + "</td></tr>";
     }).join("");
 
     var q = busca.toLowerCase();
@@ -383,9 +401,9 @@ footer{color:var(--suave);font-size:12px;margin-top:28px;padding-top:16px;border
     document.getElementById("guias-count").textContent = linhas.length;
     document.getElementById("linhas").innerHTML = linhas.map(function (x) {
       var cls = x.r.decisao === "OK" ? "ok" : "pend";
-      return "<tr><td>" + x.g.id_guia + "</td><td>" + x.g.convenio + "</td><td>" + x.r.procedimento +
-        "</td><td>" + x.g.data_atendimento + '</td><td class="num">' + brl(parseFloat((x.g.valor || "0").replace(",", "."))) +
-        '</td><td><span class="badge ' + cls + '">' + x.r.decisao + "</span></td><td>" + motivos(x.r) + "</td></tr>";
+      return '<tr><td data-label="Guia">' + x.g.id_guia + '</td><td data-label="Convênio">' + x.g.convenio + '</td><td data-label="Procedimento">' + x.r.procedimento +
+        '</td><td data-label="Atend.">' + x.g.data_atendimento + '</td><td data-label="Valor" class="num">' + brl(parseFloat((x.g.valor || "0").replace(",", "."))) +
+        '</td><td data-label="Decisão"><span class="badge ' + cls + '">' + x.r.decisao + '</span></td><td data-label="Motivos">' + motivos(x.r) + "</td></tr>";
     }).join("") || '<tr><td colspan="7">Nenhuma guia com esses filtros.</td></tr>';
 
     var p = periodo();
@@ -419,9 +437,9 @@ footer{color:var(--suave);font-size:12px;margin-top:28px;padding-top:16px;border
     document.getElementById("visao-detalhe-titulo").textContent = titulos[filtro] + " (" + linhas.length + ")";
     document.getElementById("visao-linhas").innerHTML = linhas.map(function (x) {
       var cls = x.r.decisao === "OK" ? "ok" : "pend";
-      return "<tr><td>" + x.g.id_guia + "</td><td>" + x.g.convenio + "</td><td>" + x.r.procedimento +
-        "</td><td>" + x.g.data_atendimento + '</td><td class="num">' + brl(parseFloat((x.g.valor || "0").replace(",", "."))) +
-        '</td><td><span class="badge ' + cls + '">' + x.r.decisao + "</span></td><td>" + motivos(x.r) + "</td></tr>";
+      return '<tr><td data-label="Guia">' + x.g.id_guia + '</td><td data-label="Convênio">' + x.g.convenio + '</td><td data-label="Procedimento">' + x.r.procedimento +
+        '</td><td data-label="Atend.">' + x.g.data_atendimento + '</td><td data-label="Valor" class="num">' + brl(parseFloat((x.g.valor || "0").replace(",", "."))) +
+        '</td><td data-label="Decisão"><span class="badge ' + cls + '">' + x.r.decisao + '</span></td><td data-label="Motivos">' + motivos(x.r) + "</td></tr>";
     }).join("") || '<tr><td colspan="7">Nenhuma guia.</td></tr>';
   }
 

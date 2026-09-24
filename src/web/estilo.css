@@ -123,11 +123,29 @@ footer{color:var(--suave);font-size:12px;margin-top:28px;padding-top:16px;border
   .app{flex-direction:column}
   .side{width:auto;border-bottom:1px solid rgba(255,255,255,.1);padding:14px;background:linear-gradient(90deg,#1e3a5f,#2563eb);position:static;height:auto;overflow:visible}
   .brand{padding:4px 8px 12px;font-size:15px}
-  .nav{display:flex;gap:5px;overflow-x:auto}
+  .nav{display:flex;gap:5px;overflow-x:auto;padding-bottom:4px}
   .nav button{white-space:nowrap;margin-bottom:0;padding:10px 12px}
   .kpis,.kpis-3{grid-template-columns:1fr 1fr}
   .kpi .v{font-size:26px}
+  .kpi{padding:16px 18px}
   .duas{grid-template-columns:1fr}
-  .grade{grid-template-columns:1fr 1fr}
-  .main{padding:18px}
+  .grade{grid-template-columns:1fr}
+  .main{padding:14px}
+  .card{padding:14px 10px;border-radius:10px}
+  .filtros{flex-direction:column;gap:8px}
+  .filtros .grupo{flex-wrap:wrap}
+  .busca{min-width:100%}
+
+  /* tabelas viram cards empilhados no celular */
+  table,thead,tbody,th,td,tr{display:block}
+  thead{position:absolute;left:-9999px}
+  tr{background:var(--branco);border:1px solid var(--linha);border-radius:10px;margin-bottom:10px;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+  tr:hover{background:var(--azul-claro)}
+  td{padding:5px 0;border-bottom:none;display:flex;justify-content:space-between;align-items:center;font-size:13px}
+  td::before{content:attr(data-label);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--suave);margin-right:12px;flex-shrink:0}
+  td:last-child{border-bottom:none}
+  .num{text-align:left}
+  .topo h1{font-size:18px}
+  .topo{flex-direction:column;align-items:flex-start;gap:4px}
+  .topo .meta{text-align:left}
 }

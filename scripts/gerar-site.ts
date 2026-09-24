@@ -102,22 +102,22 @@ const html = `<!DOCTYPE html>
     <!-- CONFERIR -->
     <section class="sec" id="sec-conferir">
       <div class="card">
+        <div class="campo" style="margin-bottom:14px">
+          <label>Chave da API Anthropic — opcional, só para testar a leitura por IA (Haiku). Vale para o upload e para a guia avulsa. Fica só no seu navegador, vai direto pra Anthropic. Sem ela, a leitura é determinística.</label>
+          <input id="f-apikey" type="password" placeholder="sk-ant-...  (vazio = leitura determinística)">
+        </div>
         <div class="modos">
           <button data-modo="upload" class="ativo" onclick="modo('upload')">Upload de CSV (lote)</button>
           <button data-modo="manual" onclick="modo('manual')">Preencher uma guia</button>
         </div>
         <div class="modo on" id="modo-upload">
           <div class="solta">
-            <p>Envie um CSV de guias (mesmo formato do lote). Confere todas de uma vez e atualiza o painel — funciona com 80 ou 800.</p>
+            <p>Envie um CSV de guias no mesmo formato do lote (colunas como convenio, procedimento_codigo, data_atendimento, observacao_recepcao...). Com a chave preenchida, as observações são lidas por IA (Haiku).</p>
             <input type="file" accept=".csv" onchange="carregarCSV(this)">
             <p id="upload-msg" class="aviso"></p>
           </div>
         </div>
         <div class="modo" id="modo-manual">
-          <div class="campo" style="margin-bottom:12px">
-            <label>Chave da API Anthropic — opcional, só para testar a leitura por IA (Haiku). Fica só no seu navegador, vai direto pra Anthropic.</label>
-            <input id="f-apikey" type="password" placeholder="sk-ant-...  (vazio = leitura determinística)">
-          </div>
           <div class="grade">
             <div class="campo"><label>Convênio</label><select id="f_convenio"><option>Vitalcard</option><option>Saúde Interior</option><option>Plano Bem</option></select></div>
             <div class="campo"><label>Procedimento</label><select id="f_procedimento_codigo"></select></div>

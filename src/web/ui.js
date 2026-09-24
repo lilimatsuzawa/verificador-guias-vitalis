@@ -10,6 +10,7 @@
   var busca = "";
   var de = "", ate = "";
   var apiKey = "";
+  var sinaisPorGuia = {}; // id_guia -> sinais lidos pela IA (Haiku), quando houver chave
 
   var iso = function (s) { var d = V.normalizarData(s); return d ? d.toISOString().slice(0, 10) : ""; };
 
@@ -26,7 +27,7 @@
         if (ate && d && d > ate) return false;
         return true;
       })
-      .map(function (g) { return { g: g, r: V.verificarGuia(g, V.regras) }; });
+      .map(function (g) { return { g: g, r: V.verificarGuia(g, V.regras, sinaisPorGuia[g.id_guia]) }; });
   }
 
   function motivos(r) {
@@ -193,6 +194,8 @@
       try { sinais = await window.VITALIS_IA.analisar(g.observacao_recepcao, apiKey); nota = "Observação lida por IA (Haiku)."; }
       catch (e) { nota = "IA indisponível (" + e.message + "); usei a leitura determinística."; }
       if (status) status.textContent = "";
+    } else if (g.observacao_recepcao) {
+      nota = "Observação lida de forma determinística. Cole sua chave acima para leitura por IA.";
     }
     mostrarResultado(V.verificarGuia(g, V.regras, sinais || undefined), "res-manual", nota);
   };
@@ -216,16 +219,34 @@
   window.carregarCSV = function (input) {
     var f = input.files && input.files[0]; if (!f) return;
     var fr = new FileReader();
-    fr.onload = function () {
+    fr.onload = async function () {
+      var msg = document.getElementById("upload-msg");
       try {
         var linhas = parseCSV(String(fr.result));
         var head = linhas[0].map(function (h) { return h.trim(); });
         var novas = linhas.slice(1).filter(function (l) { return l.length > 1; }).map(function (l) { var o = {}; head.forEach(function (h, i) { o[h] = (l[i] || "").trim(); }); return o; });
         if (!novas.length || head.indexOf("convenio") < 0) throw new Error("CSV sem as colunas esperadas (ex.: convenio, procedimento_codigo).");
-        dataset = novas; de = ""; ate = ""; filtroStatus = "TODAS"; sincronizarPills();
-        document.getElementById("upload-msg").textContent = novas.length + " guias carregadas. Dashboard atualizado.";
+        dataset = novas; sinaisPorGuia = {}; de = ""; ate = ""; filtroStatus = "TODAS"; sincronizarPills();
         render(); window.irPara("visao");
-      } catch (e) { document.getElementById("upload-msg").textContent = "Erro ao ler o CSV: " + e.message; }
+
+        if (!apiKey) {
+          msg.textContent = novas.length + " guias carregadas (leitura determinística). Cole sua chave acima para ler as observações por IA.";
+          return;
+        }
+        // Leitura por IA (Haiku): só nas guias com observação, com teto, recalculando ao vivo.
+        var TETO = 25;
+        var comObs = novas.filter(function (g) { return (g.observacao_recepcao || "").trim() && (g.id_guia || "").trim(); });
+        var alvo = comObs.slice(0, TETO);
+        if (!alvo.length) { msg.textContent = novas.length + " guias carregadas. Nenhuma tinha observação para ler por IA."; return; }
+        for (var i = 0; i < alvo.length; i++) {
+          msg.textContent = "Lendo observações com Haiku... " + (i + 1) + "/" + alvo.length;
+          try { sinaisPorGuia[alvo[i].id_guia] = await window.VITALIS_IA.analisar(alvo[i].observacao_recepcao, apiKey); }
+          catch (e) { /* essa guia fica na leitura determinística */ }
+          render();
+        }
+        var extra = comObs.length > TETO ? " (as demais ficaram na leitura determinística — teto de " + TETO + ")" : "";
+        msg.textContent = novas.length + " guias · " + alvo.length + " observações lidas por IA" + extra + ".";
+      } catch (e) { msg.textContent = "Erro ao ler o CSV: " + e.message; }
     };
     fr.readAsText(f);
   };

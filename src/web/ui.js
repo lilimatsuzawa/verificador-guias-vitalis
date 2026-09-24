@@ -321,7 +321,15 @@
   };
 
   window.baixarRelatorio = function () {
-    var rel = V.gerarRelatorio(calcular().map(function (x) { return x.r; }));
+    var itens = calcular();
+    var efet = itens.map(function (x) {
+      return (corrigidas[x.g.id_guia] && x.r.decisao === "PENDENTE")
+        ? Object.assign({}, x.r, { decisao: "OK", problemas: [], valor_em_risco: 0 }) : x.r;
+    });
+    var rel = V.gerarRelatorio(efet);
+    var pend = itens.filter(function (x) { return stEfetivo(x) === "PENDENTE"; });
+    var oks = itens.filter(function (x) { return stEfetivo(x) !== "PENDENTE"; });
+    var val = function (g) { return brl(parseFloat((g.valor || "0").replace(",", "."))); };
     var p = periodo();
     var per = p.min ? (p.min.split("-").reverse().join("/") + " a " + p.max.split("-").reverse().join("/")) : "todo o período";
     if (!(window.jspdf && window.jspdf.jsPDF)) { window.print(); return; } // fallback
@@ -334,14 +342,36 @@
     y += 14; doc.text("Período: " + per + "   ·   Gerado em: " + new Date().toLocaleString("pt-BR"), M, y);
     y += 26; doc.setFontSize(12); doc.setTextColor(20, 22, 26);
     doc.text(rel.total + " verificadas     " + rel.ok + " OK     " + rel.pendentes + " pendentes     " + brl(rel.valor_em_risco_total) + " em risco", M, y);
-    if (doc.autoTable) {
-      doc.autoTable({ startY: y + 18, head: [["Pendência por tipo", "Guias", "Em risco"]],
-        body: rel.por_tipo.map(function (t) { return [t.tipo, String(t.quantidade), brl(t.valor_em_risco)]; }),
-        styles: { fontSize: 9 }, headStyles: { fillColor: [230, 66, 58] }, margin: { left: M, right: M } });
-      doc.autoTable({ startY: (doc.lastAutoTable ? doc.lastAutoTable.finalY : y + 40) + 20, head: [["Convênio", "Pendentes", "Em risco"]],
-        body: rel.por_convenio.map(function (c) { return [c.convenio, c.pendentes + "/" + c.total, brl(c.valor_em_risco)]; }),
-        styles: { fontSize: 9 }, headStyles: { fillColor: [230, 66, 58] }, margin: { left: M, right: M } });
-    }
+    if (!doc.autoTable) { doc.save("relatorio-conferencia-vitalis.pdf"); return; }
+    var cab = { fillColor: [230, 66, 58] };
+
+    doc.autoTable({ startY: y + 18, head: [["Pendência por tipo", "Guias", "Em risco"]],
+      body: rel.por_tipo.map(function (t) { return [t.tipo, String(t.quantidade), brl(t.valor_em_risco)]; }),
+      styles: { fontSize: 9 }, headStyles: cab, margin: { left: M, right: M } });
+    doc.autoTable({ startY: doc.lastAutoTable.finalY + 18, head: [["Convênio", "Pendentes", "Em risco"]],
+      body: rel.por_convenio.map(function (c) { return [c.convenio, c.pendentes + "/" + c.total, brl(c.valor_em_risco)]; }),
+      styles: { fontSize: 9 }, headStyles: cab, margin: { left: M, right: M } });
+
+    var yp = doc.lastAutoTable.finalY + 26; doc.setFontSize(12); doc.setTextColor(20, 22, 26);
+    doc.text("Guias pendentes (" + pend.length + ")", M, yp);
+    doc.autoTable({ startY: yp + 6,
+      head: [["Guia", "Convênio", "Procedimento", "Valor", "Motivo", "O que corrigir"]],
+      body: pend.map(function (x) {
+        var b = x.r.problemas.filter(function (p2) { return p2.severidade === "bloqueia"; });
+        return [x.g.id_guia, x.g.convenio, x.r.procedimento, val(x.g),
+          b.map(function (p2) { return p2.motivo; }).join(" "),
+          b.map(function (p2) { return p2.corrigir; }).join(" ")];
+      }),
+      styles: { fontSize: 8, overflow: "linebreak", cellPadding: 3 }, headStyles: cab, margin: { left: M, right: M },
+      columnStyles: { 0: { cellWidth: 62 }, 3: { cellWidth: 42, halign: "right" }, 4: { cellWidth: 118 }, 5: { cellWidth: 130 } } });
+
+    var yo = doc.lastAutoTable.finalY + 26; doc.setFontSize(12); doc.setTextColor(20, 22, 26);
+    doc.text("Guias OK (" + oks.length + ")", M, yo);
+    doc.autoTable({ startY: yo + 6, head: [["Guia", "Convênio", "Procedimento", "Valor"]],
+      body: oks.map(function (x) { return [x.g.id_guia, x.g.convenio, x.r.procedimento, val(x.g)]; }),
+      styles: { fontSize: 8, cellPadding: 3 }, headStyles: cab, margin: { left: M, right: M },
+      columnStyles: { 3: { halign: "right" } } });
+
     doc.save("relatorio-conferencia-vitalis.pdf");
   };
 

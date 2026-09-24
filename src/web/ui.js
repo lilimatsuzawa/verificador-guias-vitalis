@@ -42,16 +42,18 @@
     document.getElementById("k-tot").textContent = rel.total;
     document.getElementById("k-ok").textContent = rel.ok;
     document.getElementById("k-pend").textContent = rel.pendentes;
-    document.getElementById("k-risco").textContent = brl(rel.valor_em_risco_total);
+    document.getElementById("k-risco").textContent = "em risco: " + brl(rel.valor_em_risco_total);
     var bn = document.getElementById("nav-pend-badge");
     bn.textContent = rel.pendentes; bn.style.display = rel.pendentes ? "" : "none";
 
+    rel.por_tipo.sort(function (a, b) { return b.valor_em_risco - a.valor_em_risco; });
     var maxTipo = Math.max.apply(null, rel.por_tipo.map(function (t) { return t.valor_em_risco; }).concat([1]));
     document.getElementById("por-tipo").innerHTML = rel.por_tipo.map(function (t) {
       return "<tr><td>" + t.tipo + '<div class="bar" style="width:' + Math.round((t.valor_em_risco / maxTipo) * 100) +
         '%"></div></td><td class="num">' + t.quantidade + '</td><td class="num risco-val">' + brl(t.valor_em_risco) + "</td></tr>";
     }).join("") || '<tr><td colspan="3">Sem pendencias no periodo.</td></tr>';
 
+    rel.por_convenio.sort(function (a, b) { return b.valor_em_risco - a.valor_em_risco; });
     document.getElementById("por-convenio").innerHTML = rel.por_convenio.map(function (c) {
       return "<tr><td>" + c.convenio + '</td><td class="num">' + c.pendentes + "/" + c.total +
         '</td><td class="num risco-val">' + brl(c.valor_em_risco) + "</td></tr>";
@@ -60,7 +62,11 @@
     var q = busca.toLowerCase();
     var linhas = itens.filter(function (x) {
       if (filtroStatus !== "TODAS" && x.r.decisao !== filtroStatus) return false;
-      if (q) { var alvo = (x.g.id_guia + " " + x.g.convenio + " " + x.r.procedimento).toLowerCase(); if (alvo.indexOf(q) < 0) return false; }
+      if (q) {
+        var motivosTxt = x.r.problemas.map(function (p) { return p.tipo + " " + p.motivo; }).join(" ");
+        var alvo = (x.g.id_guia + " " + x.g.convenio + " " + x.r.procedimento + " " + x.g.data_atendimento + " " + (x.g.valor || "") + " " + x.r.decisao + " " + motivosTxt).toLowerCase();
+        if (alvo.indexOf(q) < 0) return false;
+      }
       return true;
     });
     document.getElementById("guias-count").textContent = linhas.length;
@@ -73,6 +79,8 @@
 
     var p = periodo();
     document.getElementById("periodo").textContent = p.min ? (p.min.split("-").reverse().join("/") + " a " + p.max.split("-").reverse().join("/")) : "—";
+
+    if (detalheAberto) renderDetalhe(detalheAberto);
   }
 
   window.irPara = function (sec, statusOpcional) {
@@ -86,17 +94,72 @@
     document.querySelectorAll("#pills-status .pill").forEach(function (b) { b.classList.toggle("ativo", b.getAttribute("data-st") === filtroStatus); });
   }
 
-  document.getElementById("k-card-tot").onclick = function () { window.irPara("guias", "TODAS"); };
-  document.getElementById("k-card-ok").onclick = function () { window.irPara("guias", "OK"); };
-  document.getElementById("k-card-pend").onclick = function () { window.irPara("guias", "PENDENTE"); };
-  document.getElementById("k-card-risco").onclick = function () { window.irPara("pendencias"); };
+  var detalheAberto = "";
+  var titulos = { TODAS: "Todas as guias", OK: "Guias OK", PENDENTE: "Guias pendentes" };
+
+  function renderDetalhe(filtro) {
+    var itens = calcular();
+    var linhas;
+    if (filtro === "TODAS") {
+      linhas = itens;
+    } else {
+      linhas = itens.filter(function (x) { return x.r.decisao === filtro; });
+    }
+    document.getElementById("visao-detalhe-titulo").textContent = titulos[filtro] + " (" + linhas.length + ")";
+    document.getElementById("visao-linhas").innerHTML = linhas.map(function (x) {
+      var cls = x.r.decisao === "OK" ? "ok" : "pend";
+      return "<tr><td>" + x.g.id_guia + "</td><td>" + x.g.convenio + "</td><td>" + x.r.procedimento +
+        "</td><td>" + x.g.data_atendimento + '</td><td class="num">' + brl(parseFloat((x.g.valor || "0").replace(",", "."))) +
+        '</td><td><span class="badge ' + cls + '">' + x.r.decisao + "</span></td><td>" + motivos(x.r) + "</td></tr>";
+    }).join("") || '<tr><td colspan="7">Nenhuma guia.</td></tr>';
+  }
+
+  function toggleDetalhe(filtro) {
+    var el = document.getElementById("visao-detalhe");
+    document.querySelectorAll(".kpi").forEach(function (k) { k.classList.remove("kpi-ativo"); });
+    if (detalheAberto === filtro) { el.hidden = true; detalheAberto = ""; return; }
+    detalheAberto = filtro;
+    renderDetalhe(filtro);
+    el.hidden = false;
+    var mapa = { TODAS: "k-card-tot", OK: "k-card-ok", PENDENTE: "k-card-pend" };
+    document.getElementById(mapa[filtro]).classList.add("kpi-ativo");
+    el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  window.fecharDetalhe = function () { document.getElementById("visao-detalhe").hidden = true; detalheAberto = ""; document.querySelectorAll(".kpi").forEach(function (k) { k.classList.remove("kpi-ativo"); }); };
+
+  document.getElementById("k-card-tot").onclick = function () { toggleDetalhe("TODAS"); };
+  document.getElementById("k-card-ok").onclick = function () { toggleDetalhe("OK"); };
+  document.getElementById("k-card-pend").onclick = function () { toggleDetalhe("PENDENTE"); };
 
   document.querySelectorAll("#pills-status .pill").forEach(function (b) {
     b.onclick = function () { filtroStatus = b.getAttribute("data-st"); sincronizarPills(); render(); };
   });
   document.getElementById("f-busca").oninput = function (e) { busca = e.target.value; render(); };
-  document.getElementById("f-de").onchange = function (e) { de = e.target.value; render(); };
-  document.getElementById("f-ate").onchange = function (e) { ate = e.target.value; render(); };
+  document.getElementById("f-de").onchange = function (e) { de = e.target.value; sincronizarPeriodo(); render(); };
+  document.getElementById("f-ate").onchange = function (e) { ate = e.target.value; sincronizarPeriodo(); render(); };
+
+  function isoHoje() { return new Date().toISOString().slice(0, 10); }
+  function isoDiasAtras(n) { var d = new Date(); d.setDate(d.getDate() - n); return d.toISOString().slice(0, 10); }
+
+  function sincronizarPeriodo() {
+    document.querySelectorAll("#pills-periodo .pill").forEach(function (b) { b.classList.remove("ativo"); });
+    var p0 = periodo();
+    if (de === p0.min && ate === p0.max) { var el = document.querySelector('#pills-periodo .pill[data-pd="tudo"]'); if (el) el.classList.add("ativo"); }
+    else if (de === isoDiasAtras(30) && ate === isoHoje()) { var el = document.querySelector('#pills-periodo .pill[data-pd="30"]'); if (el) el.classList.add("ativo"); }
+    else if (de === isoDiasAtras(7) && ate === isoHoje()) { var el = document.querySelector('#pills-periodo .pill[data-pd="7"]'); if (el) el.classList.add("ativo"); }
+  }
+
+  window.filtroPeriodo = function (pd) {
+    var p0 = periodo();
+    if (pd === "tudo") { de = p0.min; ate = p0.max; }
+    else if (pd === "30") { de = isoDiasAtras(30); ate = isoHoje(); }
+    else if (pd === "7") { de = isoDiasAtras(7); ate = isoHoje(); }
+    document.getElementById("f-de").value = de;
+    document.getElementById("f-ate").value = ate;
+    sincronizarPeriodo();
+    render();
+  };
 
   window.modo = function (m) {
     document.querySelectorAll(".modo").forEach(function (x) { x.classList.remove("on"); });
@@ -173,5 +236,6 @@
   if (kEl) kEl.oninput = function (e) { apiKey = (e.target.value || "").trim(); };
   document.getElementById("atualizado").textContent = window.BUILD_DATE || "";
   sincronizarPills();
+  sincronizarPeriodo();
   render();
 })();

@@ -49,13 +49,20 @@ const html = `<!DOCTYPE html>
 
     <!-- VISÃO GERAL -->
     <section class="sec on" id="sec-visao">
-      <div class="kpis">
+      <div class="kpis kpis-3">
         <div class="kpi k-tot" id="k-card-tot"><div class="v" id="k-tot">–</div><div class="l">Guias verificadas</div></div>
         <div class="kpi k-ok" id="k-card-ok"><div class="v" id="k-ok">–</div><div class="l">OK</div></div>
-        <div class="kpi k-pend" id="k-card-pend"><div class="v" id="k-pend">–</div><div class="l">Pendentes</div></div>
-        <div class="kpi k-risco" id="k-card-risco"><div class="v" id="k-risco">–</div><div class="l">Em risco</div></div>
+        <div class="kpi k-pend" id="k-card-pend"><div class="v" id="k-pend">–</div><div class="l">Pendentes</div><div class="sub-risco" id="k-risco">–</div></div>
       </div>
-      <p class="aviso">Clique em um indicador para abrir as guias correspondentes.</p>
+      <p class="aviso">Clique em um indicador para ver as guias abaixo.</p>
+      <div class="card visao-detalhe" id="visao-detalhe" hidden>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <h2 id="visao-detalhe-titulo">Guias</h2>
+          <button class="pill" onclick="fecharDetalhe()" style="font-size:11px;padding:3px 10px">✕ Fechar</button>
+        </div>
+        <table><thead><tr><th>Guia</th><th>Convênio</th><th>Procedimento</th><th>Atend.</th><th class="num">Valor</th><th>Decisão</th><th>Motivos</th></tr></thead>
+        <tbody id="visao-linhas"></tbody></table>
+      </div>
     </section>
 
     <!-- PENDÊNCIAS -->
@@ -77,9 +84,14 @@ const html = `<!DOCTYPE html>
             <button class="pill" data-st="PENDENTE">Pendentes</button>
             <button class="pill" data-st="OK">OK</button>
           </div>
+          <div class="grupo" id="pills-periodo">
+            <button class="pill ativo" data-pd="tudo" onclick="filtroPeriodo('tudo')">Tudo</button>
+            <button class="pill" data-pd="30" onclick="filtroPeriodo('30')">Últimos 30 dias</button>
+            <button class="pill" data-pd="7" onclick="filtroPeriodo('7')">Últimos 7 dias</button>
+          </div>
           <div class="campo"><label>De</label><input type="date" id="f-de"></div>
           <div class="campo"><label>Até</label><input type="date" id="f-ate"></div>
-          <div class="campo busca"><label>Buscar</label><input id="f-busca" placeholder="id, convênio, procedimento"></div>
+          <div class="campo busca"><label>Buscar</label><input id="f-busca" placeholder="id, convênio, motivo, valor, decisão..."></div>
         </div>
         <h2>Todas as guias (<span id="guias-count">0</span>)</h2>
         <table><thead><tr><th>Guia</th><th>Convênio</th><th>Procedimento</th><th>Atend.</th><th class="num">Valor</th><th>Decisão</th><th>Motivos</th></tr></thead>

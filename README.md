@@ -59,7 +59,7 @@ O motor e o unico lugar que decide. O MCP, a pagina, o relatorio e os testes **p
 - **Um agente que decide via LLM** — de proposito. Deixar o modelo decidir a regra seria menos previsivel e menos testavel.
 
 ### Como testei
-- **21 testes automatizados** (`npm test`): um por classe de erro contra uma guia real do lote, os casos que a observacao recategoriza, as regras dinamicas por convenio, a normalizacao, e um teste-**golden** que trava o relatorio inteiro das 80.
+- **23 testes automatizados** (`npm test`): um por classe de erro contra uma guia real do lote, os casos que a observacao recategoriza, as regras dinamicas por convenio, a normalizacao, e um teste-**golden** que trava o relatorio inteiro das 80.
 - Conferencia manual da **tabela das 80** (decisao + motivo + origem: regra / observacao / dicionario).
 - **Teste-cliente do MCP** que sobe o servidor e chama as duas ferramentas.
 
@@ -73,7 +73,7 @@ src/nucleo.ts          motor de regras + leitura da observacao
 src/dados.ts           carregador de guias.csv e regras
 src/rodar.ts           relatorio no terminal
 src/tabela.ts          tabela das 80 (md + csv)
-src/nucleo.test.ts     21 testes
+src/nucleo.test.ts     23 testes
 src/mcp/               servidor MCP + ferramentas
 src/web/ + scripts/    pagina web (gera docs/index.html)
 .claude/skills/        a Skill do operador

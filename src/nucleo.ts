@@ -147,14 +147,14 @@ export function analisarObservacao(texto: string): SinaisObservacao {
 // ----------------------------------------------------------------------------
 // Motor de verificação — uma guia contra as regras
 // ----------------------------------------------------------------------------
-export function verificarGuia(g: GuiaCrua, regras: Regras): Resultado {
+export function verificarGuia(g: GuiaCrua, regras: Regras, sinais?: SinaisObservacao): Resultado {
   const problemas: Problema[] = [];
   const add = (tipo: string, motivo: string, corrigir: string, severidade: Severidade = "bloqueia") =>
     problemas.push({ tipo, motivo, corrigir, severidade });
 
   const proc = regras.procedimentos.find((p) => p.codigo === g.procedimento_codigo);
   const conv = regras.convenios.find((c) => c.nome === g.convenio);
-  const sig = analisarObservacao(g.observacao_recepcao);
+  const sig = sinais ?? analisarObservacao(g.observacao_recepcao);
   const procNome = proc ? proc.descricao : g.procedimento_descricao || g.procedimento_codigo;
 
   // --- Sinal: faturar como particular. Reclassifica: não confere contra convênio. ---

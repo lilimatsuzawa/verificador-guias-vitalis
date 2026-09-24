@@ -18,6 +18,7 @@ const motorJS = bundle.outputFiles[0].text;
 const guias = carregarGuias();
 const css = readFileSync(p("src/web/estilo.css"), "utf8");
 const ui = readFileSync(p("src/web/ui.js"), "utf8");
+const ia = readFileSync(p("src/web/ia.js"), "utf8");
 const hoje = new Date().toLocaleDateString("pt-BR");
 
 const campo = (id: string, label: string, ph = "") =>
@@ -48,20 +49,13 @@ const html = `<!DOCTYPE html>
 
     <!-- VISÃO GERAL -->
     <section class="sec on" id="sec-visao">
-      <div class="kpis kpis-3">
+      <div class="kpis">
         <div class="kpi k-tot" id="k-card-tot"><div class="v" id="k-tot">–</div><div class="l">Guias verificadas</div></div>
         <div class="kpi k-ok" id="k-card-ok"><div class="v" id="k-ok">–</div><div class="l">OK</div></div>
-        <div class="kpi k-pend" id="k-card-pend"><div class="v" id="k-pend">–</div><div class="l">Pendentes</div><div class="sub-risco" id="k-risco">–</div></div>
+        <div class="kpi k-pend" id="k-card-pend"><div class="v" id="k-pend">–</div><div class="l">Pendentes</div></div>
+        <div class="kpi k-risco" id="k-card-risco"><div class="v" id="k-risco">–</div><div class="l">Em risco</div></div>
       </div>
-      <p class="aviso">Clique em um indicador para ver as guias abaixo.</p>
-      <div class="card visao-detalhe" id="visao-detalhe" hidden>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <h2 id="visao-detalhe-titulo">Guias</h2>
-          <button class="pill" onclick="fecharDetalhe()" style="font-size:11px;padding:3px 10px">✕ Fechar</button>
-        </div>
-        <table><thead><tr><th>Guia</th><th>Convênio</th><th>Procedimento</th><th>Atend.</th><th class="num">Valor</th><th>Decisão</th><th>Motivos</th></tr></thead>
-        <tbody id="visao-linhas"></tbody></table>
-      </div>
+      <p class="aviso">Clique em um indicador para abrir as guias correspondentes.</p>
     </section>
 
     <!-- PENDÊNCIAS -->
@@ -83,14 +77,9 @@ const html = `<!DOCTYPE html>
             <button class="pill" data-st="PENDENTE">Pendentes</button>
             <button class="pill" data-st="OK">OK</button>
           </div>
-          <div class="grupo" id="pills-periodo">
-            <button class="pill ativo" data-pd="tudo" onclick="filtroPeriodo('tudo')">Tudo</button>
-            <button class="pill" data-pd="30" onclick="filtroPeriodo('30')">Últimos 30 dias</button>
-            <button class="pill" data-pd="7" onclick="filtroPeriodo('7')">Últimos 7 dias</button>
-          </div>
           <div class="campo"><label>De</label><input type="date" id="f-de"></div>
           <div class="campo"><label>Até</label><input type="date" id="f-ate"></div>
-          <div class="campo busca"><label>Buscar</label><input id="f-busca" placeholder="id, convênio, motivo, valor, decisão..."></div>
+          <div class="campo busca"><label>Buscar</label><input id="f-busca" placeholder="id, convênio, procedimento"></div>
         </div>
         <h2>Todas as guias (<span id="guias-count">0</span>)</h2>
         <table><thead><tr><th>Guia</th><th>Convênio</th><th>Procedimento</th><th>Atend.</th><th class="num">Valor</th><th>Decisão</th><th>Motivos</th></tr></thead>
@@ -113,6 +102,10 @@ const html = `<!DOCTYPE html>
           </div>
         </div>
         <div class="modo" id="modo-manual">
+          <div class="campo" style="margin-bottom:12px">
+            <label>Chave da API Anthropic — opcional, só para testar a leitura por IA (Haiku). Fica só no seu navegador, vai direto pra Anthropic.</label>
+            <input id="f-apikey" type="password" placeholder="sk-ant-...  (vazio = leitura determinística)">
+          </div>
           <div class="grade">
             <div class="campo"><label>Convênio</label><select id="f_convenio"><option>Vitalcard</option><option>Saúde Interior</option><option>Plano Bem</option></select></div>
             <div class="campo"><label>Procedimento</label><select id="f_procedimento_codigo"></select></div>
@@ -128,7 +121,7 @@ const html = `<!DOCTYPE html>
             ${campo("valor", "Valor", "62.00")}
             <textarea id="f_observacao_recepcao" placeholder="Observação da recepção (texto livre)"></textarea>
           </div>
-          <div class="acoes"><button class="btn p" onclick="conferir()">Conferir</button><button class="btn s" onclick="exemplo()">Carregar exemplo</button></div>
+          <div class="acoes"><button class="btn p" onclick="conferir()">Conferir</button><button class="btn s" onclick="exemplo()">Carregar exemplo</button><span id="ia-status" class="aviso"></span></div>
           <div id="res-manual"></div>
         </div>
       </div>
@@ -141,6 +134,7 @@ const html = `<!DOCTYPE html>
 <script id="guias" type="application/json">${JSON.stringify(guias)}</script>
 <script>window.GUIAS = JSON.parse(document.getElementById("guias").textContent); window.BUILD_DATE = "${hoje}";</script>
 <script>${motorJS}</script>
+<script>${ia}</script>
 <script>${ui}</script>
 </body></html>`;
 

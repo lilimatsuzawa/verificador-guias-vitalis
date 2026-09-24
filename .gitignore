@@ -5,7 +5,6 @@ dist/
 # Segredos — NUNCA no repo público (regra do enunciado)
 .env
 .env.*
-!.env.example
 *.key
 *.pem
 

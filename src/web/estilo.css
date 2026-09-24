@@ -36,6 +36,9 @@ a{color:inherit}
 .kpi.k-ok{border-left-color:var(--ok)} .kpi.k-ok .v{color:var(--ok)}
 .kpi.k-pend{border-left-color:var(--alerta)} .kpi.k-pend .v{color:var(--alerta)}
 .kpi.k-risco{border-left-color:var(--risco)} .kpi.k-risco .v{color:var(--risco)}
+.kpi.kpi-ativo{box-shadow:0 4px 14px rgba(0,0,0,.1);transform:translateY(-2px)}
+.visao-detalhe{animation:slideDown .2s ease}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
 
 /* cartões e tabelas */
 .card{background:var(--branco);border:1px solid var(--linha);border-radius:10px;padding:16px 18px;margin-bottom:16px}

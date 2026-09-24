@@ -54,7 +54,15 @@ const html = `<!DOCTYPE html>
         <div class="kpi k-pend" id="k-card-pend"><div class="v" id="k-pend">–</div><div class="l">Pendentes</div></div>
         <div class="kpi k-risco" id="k-card-risco"><div class="v" id="k-risco">–</div><div class="l">Em risco</div></div>
       </div>
-      <p class="aviso">Clique em um indicador para abrir as guias correspondentes.</p>
+      <p class="aviso">Clique em um indicador para ver as guias abaixo.</p>
+      <div class="card visao-detalhe" id="visao-detalhe" hidden>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <h2 id="visao-detalhe-titulo">Guias</h2>
+          <button class="pill" onclick="fecharDetalhe()" style="font-size:11px;padding:3px 10px">✕ Fechar</button>
+        </div>
+        <table><thead><tr><th>Guia</th><th>Convênio</th><th>Procedimento</th><th>Atend.</th><th class="num">Valor</th><th>Decisão</th><th>Motivos</th></tr></thead>
+        <tbody id="visao-linhas"></tbody></table>
+      </div>
     </section>
 
     <!-- PENDÊNCIAS -->

@@ -302,6 +302,31 @@
     fr.readAsText(f);
   };
 
+  window.baixarRelatorio = function () {
+    var rel = V.gerarRelatorio(calcular().map(function (x) { return x.r; }));
+    var p = periodo();
+    var per = p.min ? (p.min.split("-").reverse().join("/") + " a " + p.max.split("-").reverse().join("/")) : "todo o período";
+    if (!(window.jspdf && window.jspdf.jsPDF)) { window.print(); return; } // fallback
+    var doc = new window.jspdf.jsPDF({ unit: "pt", format: "a4" });
+    var M = 42, y = 54;
+    doc.setFontSize(16); doc.setTextColor(20, 22, 26);
+    doc.text("Relatório de conferência de guias", M, y);
+    doc.setFontSize(10); doc.setTextColor(110, 110, 110);
+    y += 16; doc.text("Clínica Vitalis", M, y);
+    y += 14; doc.text("Período: " + per + "   ·   Gerado em: " + new Date().toLocaleString("pt-BR"), M, y);
+    y += 26; doc.setFontSize(12); doc.setTextColor(20, 22, 26);
+    doc.text(rel.total + " verificadas     " + rel.ok + " OK     " + rel.pendentes + " pendentes     " + brl(rel.valor_em_risco_total) + " em risco", M, y);
+    if (doc.autoTable) {
+      doc.autoTable({ startY: y + 18, head: [["Pendência por tipo", "Guias", "Em risco"]],
+        body: rel.por_tipo.map(function (t) { return [t.tipo, String(t.quantidade), brl(t.valor_em_risco)]; }),
+        styles: { fontSize: 9 }, headStyles: { fillColor: [230, 66, 58] }, margin: { left: M, right: M } });
+      doc.autoTable({ startY: (doc.lastAutoTable ? doc.lastAutoTable.finalY : y + 40) + 20, head: [["Convênio", "Pendentes", "Em risco"]],
+        body: rel.por_convenio.map(function (c) { return [c.convenio, c.pendentes + "/" + c.total, brl(c.valor_em_risco)]; }),
+        styles: { fontSize: 9 }, headStyles: { fillColor: [230, 66, 58] }, margin: { left: M, right: M } });
+    }
+    doc.save("relatorio-conferencia-vitalis.pdf");
+  };
+
   var p0 = periodo(); de = p0.min; ate = p0.max;
   document.getElementById("f-de").value = de; document.getElementById("f-ate").value = ate;
   var kEl = document.getElementById("f-apikey");

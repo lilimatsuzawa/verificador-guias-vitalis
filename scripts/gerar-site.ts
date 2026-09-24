@@ -55,6 +55,7 @@ const html = `<!DOCTYPE html>
         <div class="kpi k-pend" id="k-card-pend"><div class="v" id="k-pend">–</div><div class="l">Pendentes</div><div class="sub-risco" id="k-risco">–</div></div>
       </div>
       <p class="aviso">Clique em um indicador para ver as guias abaixo.</p>
+      <div style="margin:0 0 16px"><button class="btn p" onclick="baixarRelatorio()">Baixar relatório (PDF)</button></div>
       <div class="card visao-detalhe" id="visao-detalhe" hidden>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
           <h2 id="visao-detalhe-titulo">Guias</h2>
@@ -149,6 +150,8 @@ const html = `<!DOCTYPE html>
 
 <script id="guias" type="application/json">${JSON.stringify(guias)}</script>
 <script>window.GUIAS = JSON.parse(document.getElementById("guias").textContent); window.BUILD_DATE = "${hoje}";</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script>${motorJS}</script>
 <script>${ia}</script>
 <script>${ui}</script>

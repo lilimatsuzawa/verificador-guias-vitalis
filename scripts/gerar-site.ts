@@ -84,6 +84,7 @@ const html = `<!DOCTYPE html>
             <button class="pill ativo" data-st="TODAS">Todas</button>
             <button class="pill" data-st="PENDENTE">Pendentes</button>
             <button class="pill" data-st="OK">OK</button>
+            <button class="pill" data-st="CORRIGIDA">Corrigidas</button>
           </div>
           <div class="grupo" id="pills-periodo">
             <button class="pill ativo" data-pd="tudo" onclick="filtroPeriodo('tudo')">Tudo</button>

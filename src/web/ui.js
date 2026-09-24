@@ -7,6 +7,14 @@
 
   var dataset = (window.GUIAS || []).slice();
   var filtroStatus = "TODAS";
+  var corrigidas = {}; // id_guia -> true: marcada como corrigida nesta sessão (não persiste)
+  function stEfetivo(x) { return (corrigidas[x.g.id_guia] && x.r.decisao === "PENDENTE") ? "CORRIGIDA" : x.r.decisao; }
+  function badgeCls(st) { return st === "OK" ? "ok" : (st === "CORRIGIDA" ? "corr" : "pend"); }
+  function acaoCorr(st, id) {
+    if (st === "PENDENTE") return ' <button class="btn-check" title="Marcar como corrigida" onclick="marcarCorrigida(\'' + id + '\')">✓ corrigida</button>';
+    if (st === "CORRIGIDA") return ' <button class="btn-check desfazer" onclick="desmarcarCorrigida(\'' + id + '\')">desfazer</button>';
+    return "";
+  }
   var busca = "";
   var de = "", ate = "";
   var apiKey = "";
@@ -38,14 +46,24 @@
 
   function render() {
     var itens = calcular();
-    var rel = V.gerarRelatorio(itens.map(function (x) { return x.r; }));
+    // guia marcada como corrigida deixa de contar como pendência (só nesta sessão)
+    var efet = itens.map(function (x) {
+      return (corrigidas[x.g.id_guia] && x.r.decisao === "PENDENTE")
+        ? Object.assign({}, x.r, { decisao: "OK", problemas: [], valor_em_risco: 0 })
+        : x.r;
+    });
+    var rel = V.gerarRelatorio(efet);
+    var nOk = itens.filter(function (x) { return x.r.decisao === "OK"; }).length;
+    var nCorr = itens.filter(function (x) { return x.r.decisao === "PENDENTE" && corrigidas[x.g.id_guia]; }).length;
 
     document.getElementById("k-tot").textContent = rel.total;
-    document.getElementById("k-ok").textContent = rel.ok;
+    document.getElementById("k-ok").textContent = nOk;
     document.getElementById("k-pend").textContent = rel.pendentes;
     document.getElementById("k-risco").textContent = "em risco: " + brl(rel.valor_em_risco_total);
     var bn = document.getElementById("nav-pend-badge");
     bn.textContent = rel.pendentes; bn.style.display = rel.pendentes ? "" : "none";
+    var pc = document.querySelector('#pills-status [data-st="CORRIGIDA"]');
+    if (pc) pc.textContent = "Corrigidas" + (nCorr ? " (" + nCorr + ")" : "");
 
     rel.por_tipo.sort(function (a, b) { return b.valor_em_risco - a.valor_em_risco; });
     var maxTipo = Math.max.apply(null, rel.por_tipo.map(function (t) { return t.valor_em_risco; }).concat([1]));
@@ -67,20 +85,20 @@
 
     var q = busca.toLowerCase();
     var linhas = itens.filter(function (x) {
-      if (filtroStatus !== "TODAS" && x.r.decisao !== filtroStatus) return false;
+      if (filtroStatus !== "TODAS" && stEfetivo(x) !== filtroStatus) return false;
       if (q) {
         var motivosTxt = x.r.problemas.map(function (p) { return p.tipo + " " + p.motivo; }).join(" ");
-        var alvo = (x.g.id_guia + " " + x.g.convenio + " " + x.r.procedimento + " " + x.g.data_atendimento + " " + (x.g.valor || "") + " " + x.r.decisao + " " + motivosTxt).toLowerCase();
+        var alvo = (x.g.id_guia + " " + x.g.convenio + " " + x.r.procedimento + " " + x.g.data_atendimento + " " + (x.g.valor || "") + " " + stEfetivo(x) + " " + motivosTxt).toLowerCase();
         if (alvo.indexOf(q) < 0) return false;
       }
       return true;
     });
     document.getElementById("guias-count").textContent = linhas.length;
     document.getElementById("linhas").innerHTML = linhas.map(function (x) {
-      var cls = x.r.decisao === "OK" ? "ok" : "pend";
+      var st = stEfetivo(x);
       return '<tr><td data-label="Guia">' + x.g.id_guia + '</td><td data-label="Convênio">' + x.g.convenio + '</td><td data-label="Procedimento">' + x.r.procedimento +
         '</td><td data-label="Atend.">' + x.g.data_atendimento + '</td><td data-label="Valor" class="num">' + brl(parseFloat((x.g.valor || "0").replace(",", "."))) +
-        '</td><td data-label="Decisão"><span class="badge ' + cls + '">' + x.r.decisao + '</span></td><td data-label="Motivos">' + motivos(x.r) + "</td></tr>";
+        '</td><td data-label="Decisão"><span class="badge ' + badgeCls(st) + '">' + st + '</span>' + acaoCorr(st, x.g.id_guia) + '</td><td data-label="Motivos">' + motivos(x.r) + "</td></tr>";
     }).join("") || '<tr><td colspan="7">Nenhuma guia com esses filtros.</td></tr>';
 
     var p = periodo();
@@ -109,14 +127,14 @@
     if (filtro === "TODAS") {
       linhas = itens;
     } else {
-      linhas = itens.filter(function (x) { return x.r.decisao === filtro; });
+      linhas = itens.filter(function (x) { return stEfetivo(x) === filtro; });
     }
     document.getElementById("visao-detalhe-titulo").textContent = titulos[filtro] + " (" + linhas.length + ")";
     document.getElementById("visao-linhas").innerHTML = linhas.map(function (x) {
-      var cls = x.r.decisao === "OK" ? "ok" : "pend";
+      var st = stEfetivo(x);
       return '<tr><td data-label="Guia">' + x.g.id_guia + '</td><td data-label="Convênio">' + x.g.convenio + '</td><td data-label="Procedimento">' + x.r.procedimento +
         '</td><td data-label="Atend.">' + x.g.data_atendimento + '</td><td data-label="Valor" class="num">' + brl(parseFloat((x.g.valor || "0").replace(",", "."))) +
-        '</td><td data-label="Decisão"><span class="badge ' + cls + '">' + x.r.decisao + '</span></td><td data-label="Motivos">' + motivos(x.r) + "</td></tr>";
+        '</td><td data-label="Decisão"><span class="badge ' + badgeCls(st) + '">' + st + '</span>' + acaoCorr(st, x.g.id_guia) + '</td><td data-label="Motivos">' + motivos(x.r) + "</td></tr>";
     }).join("") || '<tr><td colspan="7">Nenhuma guia.</td></tr>';
   }
 
@@ -326,6 +344,9 @@
     }
     doc.save("relatorio-conferencia-vitalis.pdf");
   };
+
+  window.marcarCorrigida = function (id) { if (id) corrigidas[id] = true; render(); };
+  window.desmarcarCorrigida = function (id) { delete corrigidas[id]; render(); };
 
   var p0 = periodo(); de = p0.min; ate = p0.max;
   document.getElementById("f-de").value = de; document.getElementById("f-ate").value = ate;

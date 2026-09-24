@@ -49,9 +49,14 @@
 
     rel.por_tipo.sort(function (a, b) { return b.valor_em_risco - a.valor_em_risco; });
     var maxTipo = Math.max.apply(null, rel.por_tipo.map(function (t) { return t.valor_em_risco; }).concat([1]));
-    document.getElementById("por-tipo").innerHTML = rel.por_tipo.map(function (t) {
-      return "<tr><td>" + t.tipo + '<div class="bar" style="width:' + Math.round((t.valor_em_risco / maxTipo) * 100) +
-        '%"></div></td><td class="num">' + t.quantidade + '</td><td class="num risco-val">' + brl(t.valor_em_risco) + "</td></tr>";
+    document.getElementById("por-tipo").innerHTML = rel.por_tipo.map(function (t, i) {
+      var ratio = t.valor_em_risco / maxTipo;
+      var r = Math.round(220 - ratio * 100);
+      var g = Math.round(60 - ratio * 40);
+      var b2 = Math.round(60 - ratio * 40);
+      var cor = "rgb(" + r + "," + g + "," + b2 + ")";
+      return "<tr><td>" + t.tipo + '<div class="bar" style="width:' + Math.round(ratio * 100) +
+        "%;background:" + cor + '"></div></td><td class="num">' + t.quantidade + '</td><td class="num risco-val">' + brl(t.valor_em_risco) + "</td></tr>";
     }).join("") || '<tr><td colspan="3">Sem pendencias no periodo.</td></tr>';
 
     rel.por_convenio.sort(function (a, b) { return b.valor_em_risco - a.valor_em_risco; });
@@ -122,6 +127,9 @@
     detalheAberto = filtro;
     renderDetalhe(filtro);
     el.hidden = false;
+    el.className = "card visao-detalhe";
+    var corMapa = { TODAS: "cor-tot", OK: "cor-ok", PENDENTE: "cor-pend" };
+    el.classList.add(corMapa[filtro]);
     var mapa = { TODAS: "k-card-tot", OK: "k-card-ok", PENDENTE: "k-card-pend" };
     document.getElementById(mapa[filtro]).classList.add("kpi-ativo");
     el.scrollIntoView({ behavior: "smooth", block: "nearest" });

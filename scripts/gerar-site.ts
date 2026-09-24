@@ -113,6 +113,10 @@ const html = `<!DOCTYPE html>
         <div class="modo on" id="modo-upload">
           <div class="solta">
             <p>Envie um CSV de guias (mesmo formato do lote). Com chave, as observações são lidas por IA.</p>
+            <div class="grupo" id="pills-upload" style="justify-content:center;margin-bottom:10px">
+              <button class="pill ativo" data-up="substituir" onclick="escolherModoUpload('substituir',this)">Substituir lote</button>
+              <button class="pill" data-up="adicionar" onclick="escolherModoUpload('adicionar',this)">Adicionar ao painel</button>
+            </div>
             <input type="file" accept=".csv" onchange="carregarCSV(this)">
             <p id="upload-msg" class="aviso"></p>
           </div>

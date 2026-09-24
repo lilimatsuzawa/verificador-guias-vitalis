@@ -239,6 +239,13 @@
     setTimeout(function () { container.remove(); }, 4500);
   }
 
+  var modoUpload = "substituir";
+  window.escolherModoUpload = function (m, btn) {
+    modoUpload = m;
+    document.querySelectorAll("#pills-upload .pill").forEach(function (b) { b.classList.remove("ativo"); });
+    if (btn) btn.classList.add("ativo");
+  };
+
   window.carregarCSV = async function (input) {
     var f = input.files && input.files[0]; if (!f) return;
     var msg = document.getElementById("upload-msg");
@@ -261,22 +268,34 @@
         if (!novas.length || head.indexOf("convenio") < 0) throw new Error("CSV sem as colunas esperadas (ex.: convenio, procedimento_codigo).");
         msg.textContent = novas.length + " guias lidas. Conferindo...";
         await espera(400);
-        dataset = novas; sinaisPorGuia = {}; de = ""; ate = ""; filtroStatus = "TODAS"; sincronizarPills();
+
+        var resumoAdd = "";
+        if (modoUpload === "adicionar") {
+          var existentes = {}; dataset.forEach(function (g) { if (g.id_guia) existentes[g.id_guia] = true; });
+          var aAdicionar = novas.filter(function (g) { return !(g.id_guia && existentes[g.id_guia]); });
+          var ignoradas = novas.length - aAdicionar.length;
+          dataset = dataset.concat(aAdicionar);
+          novas = aAdicionar; // só as adicionadas passam pela leitura por IA
+          resumoAdd = " · +" + aAdicionar.length + " adicionadas" + (ignoradas ? " (" + ignoradas + " já no painel, ignoradas)" : "");
+        } else {
+          dataset = novas; sinaisPorGuia = {};
+        }
+        de = ""; ate = ""; filtroStatus = "TODAS"; sincronizarPills();
         render(); // atualiza o painel em segundo plano; a tela continua no Upload
 
-        if (!apiKey) { placar(" (leitura determinística — cole sua chave para ler as observações por IA)"); return; }
-        // Leitura por IA (Haiku): só nas guias com observação, com teto, recalculando ao vivo.
+        if (!apiKey) { placar(resumoAdd + " · leitura determinística"); return; }
+        // Leitura por IA (Haiku): só nas guias novas com observação, com teto, recalculando ao vivo.
         var TETO = 25;
         var comObs = novas.filter(function (g) { return (g.observacao_recepcao || "").trim() && (g.id_guia || "").trim(); });
         var alvo = comObs.slice(0, TETO);
-        if (!alvo.length) { placar(""); return; }
+        if (!alvo.length) { placar(resumoAdd); return; }
         for (var i = 0; i < alvo.length; i++) {
           msg.textContent = "Lendo observações com Haiku... " + (i + 1) + "/" + alvo.length;
           try { sinaisPorGuia[alvo[i].id_guia] = await window.VITALIS_IA.analisar(alvo[i].observacao_recepcao, apiKey); }
           catch (e) { /* essa guia fica na leitura determinística */ }
           render();
         }
-        var extra = comObs.length > TETO ? " · " + alvo.length + " obs. lidas por IA (teto " + TETO + ")" : " · " + alvo.length + " obs. lidas por IA";
+        var extra = resumoAdd + (comObs.length > TETO ? " · " + alvo.length + " obs. lidas por IA (teto " + TETO + ")" : " · " + alvo.length + " obs. lidas por IA");
         placar(extra);
       } catch (e) { msg.textContent = "Erro ao ler o CSV: " + e.message; }
     };

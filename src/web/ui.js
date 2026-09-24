@@ -59,7 +59,11 @@
     var q = busca.toLowerCase();
     var linhas = itens.filter(function (x) {
       if (filtroStatus !== "TODAS" && x.r.decisao !== filtroStatus) return false;
-      if (q) { var alvo = (x.g.id_guia + " " + x.g.convenio + " " + x.r.procedimento).toLowerCase(); if (alvo.indexOf(q) < 0) return false; }
+      if (q) {
+        var motivosTxt = x.r.problemas.map(function (p) { return p.tipo + " " + p.motivo; }).join(" ");
+        var alvo = (x.g.id_guia + " " + x.g.convenio + " " + x.r.procedimento + " " + x.g.data_atendimento + " " + (x.g.valor || "") + " " + x.r.decisao + " " + motivosTxt).toLowerCase();
+        if (alvo.indexOf(q) < 0) return false;
+      }
       return true;
     });
     document.getElementById("guias-count").textContent = linhas.length;
@@ -129,8 +133,30 @@
     b.onclick = function () { filtroStatus = b.getAttribute("data-st"); sincronizarPills(); render(); };
   });
   document.getElementById("f-busca").oninput = function (e) { busca = e.target.value; render(); };
-  document.getElementById("f-de").onchange = function (e) { de = e.target.value; render(); };
-  document.getElementById("f-ate").onchange = function (e) { ate = e.target.value; render(); };
+  document.getElementById("f-de").onchange = function (e) { de = e.target.value; sincronizarPeriodo(); render(); };
+  document.getElementById("f-ate").onchange = function (e) { ate = e.target.value; sincronizarPeriodo(); render(); };
+
+  function isoHoje() { return new Date().toISOString().slice(0, 10); }
+  function isoDiasAtras(n) { var d = new Date(); d.setDate(d.getDate() - n); return d.toISOString().slice(0, 10); }
+
+  function sincronizarPeriodo() {
+    document.querySelectorAll("#pills-periodo .pill").forEach(function (b) { b.classList.remove("ativo"); });
+    var p0 = periodo();
+    if (de === p0.min && ate === p0.max) { var el = document.querySelector('#pills-periodo .pill[data-pd="tudo"]'); if (el) el.classList.add("ativo"); }
+    else if (de === isoDiasAtras(30) && ate === isoHoje()) { var el = document.querySelector('#pills-periodo .pill[data-pd="30"]'); if (el) el.classList.add("ativo"); }
+    else if (de === isoDiasAtras(7) && ate === isoHoje()) { var el = document.querySelector('#pills-periodo .pill[data-pd="7"]'); if (el) el.classList.add("ativo"); }
+  }
+
+  window.filtroPeriodo = function (pd) {
+    var p0 = periodo();
+    if (pd === "tudo") { de = p0.min; ate = p0.max; }
+    else if (pd === "30") { de = isoDiasAtras(30); ate = isoHoje(); }
+    else if (pd === "7") { de = isoDiasAtras(7); ate = isoHoje(); }
+    document.getElementById("f-de").value = de;
+    document.getElementById("f-ate").value = ate;
+    sincronizarPeriodo();
+    render();
+  };
 
   window.modo = function (m) {
     document.querySelectorAll(".modo").forEach(function (x) { x.classList.remove("on"); });
@@ -196,5 +222,6 @@
   document.getElementById("f-de").value = de; document.getElementById("f-ate").value = ate;
   document.getElementById("atualizado").textContent = window.BUILD_DATE || "";
   sincronizarPills();
+  sincronizarPeriodo();
   render();
 })();

@@ -158,9 +158,14 @@ footer{color:var(--suave);font-size:11px;margin-top:20px}
             <button class="pill" data-st="PENDENTE">Pendentes</button>
             <button class="pill" data-st="OK">OK</button>
           </div>
+          <div class="grupo" id="pills-periodo">
+            <button class="pill ativo" data-pd="tudo" onclick="filtroPeriodo('tudo')">Tudo</button>
+            <button class="pill" data-pd="30" onclick="filtroPeriodo('30')">Últimos 30 dias</button>
+            <button class="pill" data-pd="7" onclick="filtroPeriodo('7')">Últimos 7 dias</button>
+          </div>
           <div class="campo"><label>De</label><input type="date" id="f-de"></div>
           <div class="campo"><label>Até</label><input type="date" id="f-ate"></div>
-          <div class="campo busca"><label>Buscar</label><input id="f-busca" placeholder="id, convênio, procedimento"></div>
+          <div class="campo busca"><label>Buscar</label><input id="f-busca" placeholder="id, convênio, motivo, valor, decisão..."></div>
         </div>
         <h2>Todas as guias (<span id="guias-count">0</span>)</h2>
         <table><thead><tr><th>Guia</th><th>Convênio</th><th>Procedimento</th><th>Atend.</th><th class="num">Valor</th><th>Decisão</th><th>Motivos</th></tr></thead>
@@ -273,7 +278,11 @@ footer{color:var(--suave);font-size:11px;margin-top:20px}
     var q = busca.toLowerCase();
     var linhas = itens.filter(function (x) {
       if (filtroStatus !== "TODAS" && x.r.decisao !== filtroStatus) return false;
-      if (q) { var alvo = (x.g.id_guia + " " + x.g.convenio + " " + x.r.procedimento).toLowerCase(); if (alvo.indexOf(q) < 0) return false; }
+      if (q) {
+        var motivosTxt = x.r.problemas.map(function (p) { return p.tipo + " " + p.motivo; }).join(" ");
+        var alvo = (x.g.id_guia + " " + x.g.convenio + " " + x.r.procedimento + " " + x.g.data_atendimento + " " + (x.g.valor || "") + " " + x.r.decisao + " " + motivosTxt).toLowerCase();
+        if (alvo.indexOf(q) < 0) return false;
+      }
       return true;
     });
     document.getElementById("guias-count").textContent = linhas.length;
@@ -343,8 +352,30 @@ footer{color:var(--suave);font-size:11px;margin-top:20px}
     b.onclick = function () { filtroStatus = b.getAttribute("data-st"); sincronizarPills(); render(); };
   });
   document.getElementById("f-busca").oninput = function (e) { busca = e.target.value; render(); };
-  document.getElementById("f-de").onchange = function (e) { de = e.target.value; render(); };
-  document.getElementById("f-ate").onchange = function (e) { ate = e.target.value; render(); };
+  document.getElementById("f-de").onchange = function (e) { de = e.target.value; sincronizarPeriodo(); render(); };
+  document.getElementById("f-ate").onchange = function (e) { ate = e.target.value; sincronizarPeriodo(); render(); };
+
+  function isoHoje() { return new Date().toISOString().slice(0, 10); }
+  function isoDiasAtras(n) { var d = new Date(); d.setDate(d.getDate() - n); return d.toISOString().slice(0, 10); }
+
+  function sincronizarPeriodo() {
+    document.querySelectorAll("#pills-periodo .pill").forEach(function (b) { b.classList.remove("ativo"); });
+    var p0 = periodo();
+    if (de === p0.min && ate === p0.max) { var el = document.querySelector('#pills-periodo .pill[data-pd="tudo"]'); if (el) el.classList.add("ativo"); }
+    else if (de === isoDiasAtras(30) && ate === isoHoje()) { var el = document.querySelector('#pills-periodo .pill[data-pd="30"]'); if (el) el.classList.add("ativo"); }
+    else if (de === isoDiasAtras(7) && ate === isoHoje()) { var el = document.querySelector('#pills-periodo .pill[data-pd="7"]'); if (el) el.classList.add("ativo"); }
+  }
+
+  window.filtroPeriodo = function (pd) {
+    var p0 = periodo();
+    if (pd === "tudo") { de = p0.min; ate = p0.max; }
+    else if (pd === "30") { de = isoDiasAtras(30); ate = isoHoje(); }
+    else if (pd === "7") { de = isoDiasAtras(7); ate = isoHoje(); }
+    document.getElementById("f-de").value = de;
+    document.getElementById("f-ate").value = ate;
+    sincronizarPeriodo();
+    render();
+  };
 
   window.modo = function (m) {
     document.querySelectorAll(".modo").forEach(function (x) { x.classList.remove("on"); });
@@ -410,6 +441,7 @@ footer{color:var(--suave);font-size:11px;margin-top:20px}
   document.getElementById("f-de").value = de; document.getElementById("f-ate").value = ate;
   document.getElementById("atualizado").textContent = window.BUILD_DATE || "";
   sincronizarPills();
+  sincronizarPeriodo();
   render();
 })();
 </script>

@@ -48,11 +48,10 @@ const html = `<!DOCTYPE html>
 
     <!-- VISÃO GERAL -->
     <section class="sec on" id="sec-visao">
-      <div class="kpis">
+      <div class="kpis kpis-3">
         <div class="kpi k-tot" id="k-card-tot"><div class="v" id="k-tot">–</div><div class="l">Guias verificadas</div></div>
         <div class="kpi k-ok" id="k-card-ok"><div class="v" id="k-ok">–</div><div class="l">OK</div></div>
-        <div class="kpi k-pend" id="k-card-pend"><div class="v" id="k-pend">–</div><div class="l">Pendentes</div></div>
-        <div class="kpi k-risco" id="k-card-risco"><div class="v" id="k-risco">–</div><div class="l">Em risco</div></div>
+        <div class="kpi k-pend" id="k-card-pend"><div class="v" id="k-pend">–</div><div class="l">Pendentes</div><div class="sub-risco" id="k-risco">–</div></div>
       </div>
       <p class="aviso">Clique em um indicador para ver as guias abaixo.</p>
       <div class="card visao-detalhe" id="visao-detalhe" hidden>

@@ -32,6 +32,7 @@ a{color:inherit}
 
 /* KPIs */
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.kpis-3{grid-template-columns:repeat(3,1fr)}
 .kpi{background:var(--branco);border:1px solid var(--linha);border-left:4px solid var(--suave);border-radius:10px;padding:14px 16px;cursor:pointer;transition:transform .08s,box-shadow .08s}
 .kpi:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.06)}
 .kpi .v{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums}
@@ -39,7 +40,7 @@ a{color:inherit}
 .kpi.k-tot{border-left-color:var(--azul)} .kpi.k-tot .v{color:var(--azul)}
 .kpi.k-ok{border-left-color:var(--ok)} .kpi.k-ok .v{color:var(--ok)}
 .kpi.k-pend{border-left-color:var(--alerta)} .kpi.k-pend .v{color:var(--alerta)}
-.kpi.k-risco{border-left-color:var(--risco)} .kpi.k-risco .v{color:var(--risco)}
+.sub-risco{font-size:12px;color:var(--risco);font-weight:600;margin-top:4px}
 .kpi.kpi-ativo{box-shadow:0 4px 14px rgba(0,0,0,.1);transform:translateY(-2px)}
 .visao-detalhe{animation:slideDown .2s ease}
 @keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
@@ -96,6 +97,7 @@ footer{color:var(--suave);font-size:11px;margin-top:20px}
   .nav{display:flex;gap:4px;overflow-x:auto}
   .nav button{white-space:nowrap;margin-bottom:0}
   .kpis{grid-template-columns:1fr 1fr}
+  .kpis-3{grid-template-columns:1fr 1fr}
   .duas{grid-template-columns:1fr}
   .grade{grid-template-columns:1fr 1fr}
   .main{padding:16px}
@@ -121,11 +123,10 @@ footer{color:var(--suave);font-size:11px;margin-top:20px}
 
     <!-- VISÃO GERAL -->
     <section class="sec on" id="sec-visao">
-      <div class="kpis">
+      <div class="kpis kpis-3">
         <div class="kpi k-tot" id="k-card-tot"><div class="v" id="k-tot">–</div><div class="l">Guias verificadas</div></div>
         <div class="kpi k-ok" id="k-card-ok"><div class="v" id="k-ok">–</div><div class="l">OK</div></div>
-        <div class="kpi k-pend" id="k-card-pend"><div class="v" id="k-pend">–</div><div class="l">Pendentes</div></div>
-        <div class="kpi k-risco" id="k-card-risco"><div class="v" id="k-risco">–</div><div class="l">Em risco</div></div>
+        <div class="kpi k-pend" id="k-card-pend"><div class="v" id="k-pend">–</div><div class="l">Pendentes</div><div class="sub-risco" id="k-risco">–</div></div>
       </div>
       <p class="aviso">Clique em um indicador para ver as guias abaixo.</p>
       <div class="card visao-detalhe" id="visao-detalhe" hidden>
@@ -254,7 +255,7 @@ footer{color:var(--suave);font-size:11px;margin-top:20px}
     document.getElementById("k-tot").textContent = rel.total;
     document.getElementById("k-ok").textContent = rel.ok;
     document.getElementById("k-pend").textContent = rel.pendentes;
-    document.getElementById("k-risco").textContent = brl(rel.valor_em_risco_total);
+    document.getElementById("k-risco").textContent = "em risco: " + brl(rel.valor_em_risco_total);
     var bn = document.getElementById("nav-pend-badge");
     bn.textContent = rel.pendentes; bn.style.display = rel.pendentes ? "" : "none";
 
@@ -301,14 +302,12 @@ footer{color:var(--suave);font-size:11px;margin-top:20px}
   }
 
   var detalheAberto = "";
-  var titulos = { TODAS: "Todas as guias", OK: "Guias OK", PENDENTE: "Guias pendentes", RISCO: "Valor em risco (pendentes)" };
+  var titulos = { TODAS: "Todas as guias", OK: "Guias OK", PENDENTE: "Guias pendentes" };
 
   function renderDetalhe(filtro) {
     var itens = calcular();
     var linhas;
-    if (filtro === "RISCO") {
-      linhas = itens.filter(function (x) { return x.r.decisao === "PENDENTE"; });
-    } else if (filtro === "TODAS") {
+    if (filtro === "TODAS") {
       linhas = itens;
     } else {
       linhas = itens.filter(function (x) { return x.r.decisao === filtro; });
@@ -329,7 +328,7 @@ footer{color:var(--suave);font-size:11px;margin-top:20px}
     detalheAberto = filtro;
     renderDetalhe(filtro);
     el.hidden = false;
-    var mapa = { TODAS: "k-card-tot", OK: "k-card-ok", PENDENTE: "k-card-pend", RISCO: "k-card-risco" };
+    var mapa = { TODAS: "k-card-tot", OK: "k-card-ok", PENDENTE: "k-card-pend" };
     document.getElementById(mapa[filtro]).classList.add("kpi-ativo");
     el.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
@@ -339,7 +338,6 @@ footer{color:var(--suave);font-size:11px;margin-top:20px}
   document.getElementById("k-card-tot").onclick = function () { toggleDetalhe("TODAS"); };
   document.getElementById("k-card-ok").onclick = function () { toggleDetalhe("OK"); };
   document.getElementById("k-card-pend").onclick = function () { toggleDetalhe("PENDENTE"); };
-  document.getElementById("k-card-risco").onclick = function () { toggleDetalhe("RISCO"); };
 
   document.querySelectorAll("#pills-status .pill").forEach(function (b) {
     b.onclick = function () { filtroStatus = b.getAttribute("data-st"); sincronizarPills(); render(); };

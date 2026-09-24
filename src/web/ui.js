@@ -41,7 +41,7 @@
     document.getElementById("k-tot").textContent = rel.total;
     document.getElementById("k-ok").textContent = rel.ok;
     document.getElementById("k-pend").textContent = rel.pendentes;
-    document.getElementById("k-risco").textContent = brl(rel.valor_em_risco_total);
+    document.getElementById("k-risco").textContent = "em risco: " + brl(rel.valor_em_risco_total);
     var bn = document.getElementById("nav-pend-badge");
     bn.textContent = rel.pendentes; bn.style.display = rel.pendentes ? "" : "none";
 
@@ -88,14 +88,12 @@
   }
 
   var detalheAberto = "";
-  var titulos = { TODAS: "Todas as guias", OK: "Guias OK", PENDENTE: "Guias pendentes", RISCO: "Valor em risco (pendentes)" };
+  var titulos = { TODAS: "Todas as guias", OK: "Guias OK", PENDENTE: "Guias pendentes" };
 
   function renderDetalhe(filtro) {
     var itens = calcular();
     var linhas;
-    if (filtro === "RISCO") {
-      linhas = itens.filter(function (x) { return x.r.decisao === "PENDENTE"; });
-    } else if (filtro === "TODAS") {
+    if (filtro === "TODAS") {
       linhas = itens;
     } else {
       linhas = itens.filter(function (x) { return x.r.decisao === filtro; });
@@ -116,7 +114,7 @@
     detalheAberto = filtro;
     renderDetalhe(filtro);
     el.hidden = false;
-    var mapa = { TODAS: "k-card-tot", OK: "k-card-ok", PENDENTE: "k-card-pend", RISCO: "k-card-risco" };
+    var mapa = { TODAS: "k-card-tot", OK: "k-card-ok", PENDENTE: "k-card-pend" };
     document.getElementById(mapa[filtro]).classList.add("kpi-ativo");
     el.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
@@ -126,7 +124,6 @@
   document.getElementById("k-card-tot").onclick = function () { toggleDetalhe("TODAS"); };
   document.getElementById("k-card-ok").onclick = function () { toggleDetalhe("OK"); };
   document.getElementById("k-card-pend").onclick = function () { toggleDetalhe("PENDENTE"); };
-  document.getElementById("k-card-risco").onclick = function () { toggleDetalhe("RISCO"); };
 
   document.querySelectorAll("#pills-status .pill").forEach(function (b) {
     b.onclick = function () { filtroStatus = b.getAttribute("data-st"); sincronizarPills(); render(); };

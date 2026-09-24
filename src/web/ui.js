@@ -216,14 +216,32 @@
     if (field !== "" || row.length) { row.push(field); rows.push(row); }
     return rows;
   }
+  function confetes() {
+    var cores = ["#12805c", "#2b5cff", "#e0362c", "#b7791f", "#9333ea", "#f59e0b"];
+    var container = document.createElement("div");
+    container.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;overflow:hidden";
+    document.body.appendChild(container);
+    for (var i = 0; i < 80; i++) {
+      var c = document.createElement("div");
+      var size = 6 + Math.random() * 6;
+      c.style.cssText = "position:absolute;top:-10px;width:" + size + "px;height:" + (size * 0.6) + "px;background:" + cores[Math.floor(Math.random() * cores.length)] +
+        ";left:" + Math.random() * 100 + "%;opacity:0.9;border-radius:2px;animation:confete " + (1.5 + Math.random() * 2) + "s ease-out forwards;animation-delay:" + (Math.random() * 0.5) + "s;transform:rotate(" + Math.random() * 360 + "deg)";
+      container.appendChild(c);
+    }
+    setTimeout(function () { container.remove(); }, 4500);
+  }
+
   window.carregarCSV = async function (input) {
     var f = input.files && input.files[0]; if (!f) return;
     var msg = document.getElementById("upload-msg");
+    msg.className = "aviso";
     var espera = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
     var placar = function (extra) {
       var rel = V.gerarRelatorio(calcular().map(function (x) { return x.r; }));
-      msg.innerHTML = "Pronto — " + rel.total + " guias · " + rel.ok + " OK · " + rel.pendentes + " pendentes." +
-        (extra || "") + ' <button class="btn s" style="margin-left:8px" onclick="irPara(\'visao\')">Ver no painel</button>';
+      msg.className = "upload-ok";
+      msg.innerHTML = rel.total + " guias · " + rel.ok + " OK · " + rel.pendentes + " pendentes" +
+        (extra || "") + ' <button class="btn s" style="margin-left:10px" onclick="irPara(\'visao\')">Ver no painel</button>';
+      confetes();
     };
     msg.textContent = "Lendo " + f.name + "...";
     var fr = new FileReader();

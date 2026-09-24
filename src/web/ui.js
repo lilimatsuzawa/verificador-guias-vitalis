@@ -45,12 +45,14 @@
     var bn = document.getElementById("nav-pend-badge");
     bn.textContent = rel.pendentes; bn.style.display = rel.pendentes ? "" : "none";
 
+    rel.por_tipo.sort(function (a, b) { return b.valor_em_risco - a.valor_em_risco; });
     var maxTipo = Math.max.apply(null, rel.por_tipo.map(function (t) { return t.valor_em_risco; }).concat([1]));
     document.getElementById("por-tipo").innerHTML = rel.por_tipo.map(function (t) {
       return "<tr><td>" + t.tipo + '<div class="bar" style="width:' + Math.round((t.valor_em_risco / maxTipo) * 100) +
         '%"></div></td><td class="num">' + t.quantidade + '</td><td class="num risco-val">' + brl(t.valor_em_risco) + "</td></tr>";
     }).join("") || '<tr><td colspan="3">Sem pendencias no periodo.</td></tr>';
 
+    rel.por_convenio.sort(function (a, b) { return b.valor_em_risco - a.valor_em_risco; });
     document.getElementById("por-convenio").innerHTML = rel.por_convenio.map(function (c) {
       return "<tr><td>" + c.convenio + '</td><td class="num">' + c.pendentes + "/" + c.total +
         '</td><td class="num risco-val">' + brl(c.valor_em_risco) + "</td></tr>";

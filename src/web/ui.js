@@ -201,6 +201,45 @@
   var selProc = document.getElementById("f_procedimento_codigo");
   V.regras.procedimentos.forEach(function (p) { var o = document.createElement("option"); o.value = p.codigo; o.textContent = p.codigo + " - " + p.descricao; selProc.appendChild(o); });
 
+  // ---- validação inline: dica embaixo do campo enquanto digita (o veredito final é do motor) ----
+  function _valF(c) { var el = document.getElementById("f_" + c); return el ? (el.value || "").trim() : ""; }
+  function _conv() { return V.regras.convenios.find(function (c) { return c.nome === _valF("convenio"); }); }
+  function _proc() { return V.regras.procedimentos.find(function (p) { return p.codigo === _valF("procedimento_codigo"); }); }
+  function _setErr(c, msg) {
+    var e = document.getElementById("err_" + c); if (e) e.textContent = msg || "";
+    var inp = document.getElementById("f_" + c); if (inp) inp.classList.toggle("campo-erro", !!msg);
+  }
+  function validarInline() {
+    var c = _conv(), pr = _proc();
+    ["data_atendimento", "data_lancamento", "autorizacao_validade"].forEach(function (cc) {
+      var v = _valF(cc);
+      if (!v) { _setErr(cc, ""); return; }
+      var d = V.normalizarData(v);
+      if (!d) _setErr(cc, "Data inválida (use AAAA-MM-DD)");
+      else if (cc === "data_atendimento" && (d.getUTCFullYear() < 2000 || d.getUTCFullYear() > 2030)) _setErr(cc, "Data fora do período plausível");
+      else _setErr(cc, "");
+    });
+    var v = _valF("valor"), n = parseFloat(v.replace(",", "."));
+    _setErr("valor", (v && pr && isFinite(n) && Math.abs(n - pr.valor_referencia) > 0.001) ? "Referência do procedimento: R$ " + pr.valor_referencia.toFixed(2) : "");
+    var s = parseInt(_valF("sessao_numero_na_autorizacao"), 10);
+    _setErr("sessao_numero_na_autorizacao", (c && isFinite(s) && s > c.limite_sessoes_por_autorizacao) ? "Passa do limite de " + c.limite_sessoes_por_autorizacao + " do " + c.nome : "");
+    var lim = parseInt(_valF("autorizacao_sessoes_limite"), 10);
+    _setErr("autorizacao_sessoes_limite", (c && isFinite(lim) && lim !== c.limite_sessoes_por_autorizacao) ? "Limite do " + c.nome + " é " + c.limite_sessoes_por_autorizacao : "");
+    var reg = _valF("profissional_registro").toUpperCase();
+    if (!reg) _setErr("profissional_registro", "");
+    else if (pr && pr.codigo.charAt(0) === "5" && reg.indexOf("CREFITO") < 0) _setErr("profissional_registro", "Esperado CREFITO (fisioterapia)");
+    else if (pr && (pr.codigo === "20103301" || pr.codigo === "40201015") && reg.indexOf("CRM") < 0) _setErr("profissional_registro", "Esperado CRM (médico)");
+    else _setErr("profissional_registro", "");
+  }
+  window.validarInline = validarInline;
+  campos.forEach(function (cc) {
+    var inp = document.getElementById("f_" + cc); if (!inp) return;
+    var e = document.createElement("small"); e.className = "erro-campo"; e.id = "err_" + cc;
+    inp.parentNode.appendChild(e);
+    inp.addEventListener("input", validarInline);
+    inp.addEventListener("change", validarInline);
+  });
+
   function mostrarResultado(r, alvo, nota) {
     var cls = r.decisao === "OK" ? "ok" : "pend";
     var html = '<div class="res ' + cls + '"><b><span class="badge ' + cls + '">' + r.decisao + "</span> " + (r.procedimento || "") + "</b> - " + brl(r.valor_em_risco) + " em risco";
@@ -231,6 +270,7 @@
       autorizacao_sessoes_limite: "10", sessao_numero_na_autorizacao: "2", profissional_registro: "CRM-SP 55010", valor: "90.00",
       observacao_recepcao: "Procedimento realizado foi drenagem linfatica, lancar o codigo certo." };
     campos.forEach(function (c) { document.getElementById("f_" + c).value = ex[c] || ""; });
+    if (window.validarInline) window.validarInline();
     window.conferir();
   };
 
